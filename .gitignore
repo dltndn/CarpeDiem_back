@@ -15,7 +15,7 @@
 .env
 
 #contract information
-/src/contractInformation.js
+/contractInfo.js
 
 # misc
 .DS_Store
