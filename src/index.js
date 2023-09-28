@@ -3,7 +3,6 @@ const app = require('./app');
 const dbService = require('./services/db.service');
 
 const server = app.listen(process.env.PORT, async () => {
-  dbService.clear();
   console.log(`Listening to port ${process.env.PORT}`);
   await dbService.connect();
   console.log(`Connected!`);

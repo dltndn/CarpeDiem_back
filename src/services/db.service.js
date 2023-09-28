@@ -1,23 +1,18 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
-
-let mongoServer;
 
 const opts = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 };
 
+
 // Provide connection to a new in-memory database server.
 const connect = async () => {
   // NOTE: before establishing a new connection close previous
   await mongoose.disconnect();
 
-  mongoServer = await MongoMemoryServer.create();
-
-  const mongoUri = mongoServer.getUri();
   try {
-    await mongoose.connect(mongoUri, opts);
+    await mongoose.connect(process.env.MONGODB_URI, opts);
     console.log('MongoDB connected');
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
@@ -27,21 +22,25 @@ const connect = async () => {
 
 // Remove and close the database and server.
 const close = async () => {
-  await mongoose.disconnect();
-  await mongoServer.stop();
-};
-
-// Remove all data from collections
-const clear = async () => {
-  const collections = mongoose.connection.collections;
-
-  for (const key in collections) {
-    collections[key].deleteMany();
+  try {
+    await mongoose.disconnect();
+    console.log('MongoDB disconnected');
+  } catch (error) {
+    console.error('Error disconnecting from MongoDB:', error);
   }
+
 };
+
 
 module.exports = {
   connect,
-  close,
-  clear,
+  close
+};
+
+const connectMongo = async (databaseName) => {
+  if (keys.db.mongo === undefined) {
+    throw new Error("dotenv의 MONGO_CHAT의 값이 없음");
+  } else {
+    return mongoose.createConnection(keys.db.mongo , {dbName: databaseName});
+  }
 };

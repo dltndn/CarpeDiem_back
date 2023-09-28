@@ -1,6 +1,6 @@
 const express = require('express');
 const userRoute = require('./user.route');
-const gameDataRoute = require('./gameData.route');
+const gamesRoute = require('./games.route');
 // const webhookRoute = require('./webhook.route');
 
 const router = express.Router();
@@ -11,8 +11,8 @@ const defaultRoutes = [
     route: userRoute,
   },
   {
-    path: '/gameData',
-    route: gameDataRoute,
+    path: '/games',
+    route: gamesRoute,
   },
 //   {
 //     path: '/webhook',

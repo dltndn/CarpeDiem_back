@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const passport = require('passport');
 const routes = require('./routes');
-// const { notFoundErrorHandler, globalErrorHandler } = require('./middlewares/error');
+const { notFoundErrorHandler, globalErrorHandler } = require('./middlewares/error');
 
 const app = express();
 
@@ -27,7 +27,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(mongoSanitize());
 
 // gzip compression
-app.use(compression({ level: 6 }));
+app.use(compression());
 
 // passport setup
 app.use(passport.initialize());
@@ -36,7 +36,7 @@ app.use(passport.initialize());
 app.use('/api', routes);
 
 // handle error
-// app.use(notFoundErrorHandler);
-// app.use(globalErrorHandler);
+app.use(notFoundErrorHandler);
+app.use(globalErrorHandler);
 
 module.exports = app;
