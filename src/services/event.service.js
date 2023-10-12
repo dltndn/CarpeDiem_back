@@ -1,4 +1,4 @@
-const { Games } = require('../models')
+const { Games, UserGameId } = require('../models')
 const gameContractInfo = require('../contractInfo')
 
 /**
@@ -13,6 +13,26 @@ const findKeyByAddress = (address) => {
         }
       }
       return undefined;
+}
+
+/**
+ * 
+ * @param contractKey 
+ * @returns string
+ */
+const getGameIdKeyByContractKey = (contractKey) => {
+    switch (contractKey) {
+        case 'Game_2':
+            return 'gameIds_2'
+        case 'Game_10':
+            return 'gameIds_10'
+        case 'Game_50':
+            return 'gameIds_50'
+        case 'Game_250':
+            return 'gameIds_250'
+        default:
+            return null
+    }
 }
 
 /**
@@ -72,6 +92,11 @@ const updateGamePlayer = async (obj) => {
             const newGame = await createNewGame(contractKey, obj)
             await newGame.save()
         }
+        // user가 참여한 gameID 목록 추가
+        const gameIdKey = getGameIdKeyByContractKey(contractKey)
+        const userGameId = await UserGameId.findOne({ address: obj.playerAddress })
+        userGameId[gameIdKey].push(obj.gameId)
+        await userGameId.save()
         return true
     }
     return false

@@ -7,8 +7,7 @@ const gameSchema = new mongoose.Schema(
     player2: { type: String, required: false },
     player3: { type: String, required: false },
     player4: { type: String, required: false },
-    targetBlockNumber: { type: String, required: false },
-    targetBlockhash: { type: String, required: false },
+    resultHash: { type: String, required: false },
     winnerSpot: { type: Number, required: false },
     rewardClaimed: { type: Boolean, required: true }
   });
