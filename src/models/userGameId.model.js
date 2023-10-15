@@ -7,6 +7,7 @@ const userGameIdSchema = new mongoose.Schema(
     gameIds_10: { type: [Number] },
     gameIds_50: { type: [Number] },
     gameIds_250: { type: [Number] },
+    totalRewards: { type: Number }
   });
 
 const UserGameId = mongoose.model('UserGameId', userGameIdSchema);

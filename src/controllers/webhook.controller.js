@@ -12,7 +12,7 @@ const toWalletAddress = (hexString) => abiCoder.decode(['address'], hexString);
 // Stream ID 유효성 검사
 const validateStreamId = (id) => {
     const env = process.env
-    const isAuth = (id === env.MORALIS_STREAM_ID_BET)
+    const isAuth = (id === env.MORALIS_STREAM_ID_BET) || (id === env.MORALIS_STREAM_ID_EFP)
     return isAuth
 }
 
@@ -51,7 +51,7 @@ const getBetEvent = async (req, res) => {
                     playerAddress: toWalletAddress(topic2).toString(),
                     spot: toBigNumber(topic3)
                 }
-                
+        
                 if (await eventService.updateGamePlayer(obj)) {
                     return res.status(httpStatus.OK).send({ message: 'Update game information'})
                 } else {
@@ -70,9 +70,42 @@ const getBetEvent = async (req, res) => {
 }
 
 // EnterFirstPlayer 이벤트 log 저장 함수
-// gameId, blocknumber, spot
+// gameId, resultHash, spot
 const getEfpEvent = async (req, res) => {
+    const webhookData = req.body
+    const { confirmed, streamId, logs } = webhookData
+    
+    if (!validateStreamId(streamId)) {
+        console.log('Unauthorized stream id')
+        res.status(httpStatus.UNAUTHORIZED).send()
+    }
 
+    if (!confirmed) {
+        if (logs?.length > 0) {
+            try {
+                const { address: contractAddress, topic1, topic2, topic3 } = logs[0]
+                const obj = {
+                    contractAddress: contractAddress,
+                    gameId: toBigNumber(topic1),
+                    resultHash: topic2.toString(),
+                    spot: toBigNumber(topic3)
+                }
+                
+                if (await eventService.insertWinnerInfo(obj)) {
+                    return res.status(httpStatus.OK).send({ message: 'Update game winner information'})
+                } else {
+                    console.log("error: 잘못된 컨트랙 주소")
+                    return res.status(httpStatus.UNAUTHORIZED).send({ message: 'Invalid contract address'})
+                }
+
+            } catch (e) {
+                console.log(e)
+                return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e.message })
+            }
+        }
+    }
+    // blockchain confirmed
+    return res.status(httpStatus.OK).send({ message: "No logs found" })
 }
 
 // ClaimReward 이벤트 log 저장 함수
@@ -91,6 +124,7 @@ module.exports = {
   getWebhooks,
   sendRandomReward,
   getBetEvent,
+  getEfpEvent
 };
 
 

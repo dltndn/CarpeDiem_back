@@ -8,7 +8,7 @@ const gameContractInfo = require('../contractInfo')
  */
 const findKeyByAddress = (address) => {
     for (const key in gameContractInfo) {
-        if (gameContractInfo[key] === address) {
+        if (gameContractInfo[key].toLowerCase() === address) {
           return key;
         }
       }
@@ -70,6 +70,18 @@ const createNewGame = async (contractKey, obj) => {
     return game
 }
 
+/**
+ * 
+ * @param playerAddress 
+ * @returns 
+ */
+const createNewUserGameId = async (playerAddress) => {
+    const gameIds = await UserGameId.create({
+        address: playerAddress
+    })
+    return gameIds
+}
+
 /** 
  * @param obj contractAddress,
               gameId,
@@ -82,21 +94,30 @@ const updateGamePlayer = async (obj) => {
     if (contractKey) {
         // mongoDB gameId 조회
         const game = await Games[contractKey].findOne({ gameId: obj.gameId })
+        const updateFields = {};
+        updateFields[getPlayerSpot(obj.spot)] = obj.playerAddress;
         if (game) {
-            // player address 추가
-            const updateFields = {};
-            updateFields[getPlayerSpot(obj.spot)] = obj.playerAddress;
-            const updatedGame = await game.updateOne(updateFields)
+            // player address 추가    
+            await game.updateOne(updateFields)
+            await game.save()
         } else {
             // game collection 만들기
             const newGame = await createNewGame(contractKey, obj)
+            await newGame.updateOne(updateFields)
             await newGame.save()
         }
         // user가 참여한 gameID 목록 추가
         const gameIdKey = getGameIdKeyByContractKey(contractKey)
         const userGameId = await UserGameId.findOne({ address: obj.playerAddress })
-        userGameId[gameIdKey].push(obj.gameId)
-        await userGameId.save()
+        // gameId DB에 해당 정보가 없으면 추가
+        if (userGameId === null) {
+            const newUserGameId = await createNewUserGameId(obj.playerAddress)
+            newUserGameId[gameIdKey].push(obj.gameId)
+            await newUserGameId.save()
+        } else {
+            userGameId[gameIdKey].push(obj.gameId)
+            await userGameId.save()
+        }
         return true
     }
     return false
@@ -105,17 +126,26 @@ const updateGamePlayer = async (obj) => {
 /**
  * @param obj contractAddress,
               gameId,
-              targetBlockNumber,
+              resultHash,
               winnerSpot
   * @returns boolean
  */
 const insertWinnerInfo = async (obj) => {
     const contractKey = findKeyByAddress(obj.contractAddress)
     if (contractKey) {
-        
+        // mongoDB gameId 조회
+        const game = await Games[contractKey].findOne({ gameId: obj.gameId })
         // mongoDB 입력
-
-        // mongoDB 출력 - model.exec()
+        if (game) {
+            // winner 정보 추가
+            await game.updateOne({ resultHash: obj.resultHash, winnerSpot: obj.spot })
+        } else {
+            console.log("error: Attempted to query for game data via efpEvent, but the data is not present in the database.")
+        }
+        // 이거 체크
+        // redis에 넣을 데이터
+        const updatedGame = await Games[contractKey].findOne({ gameId: obj.gameId }).exec()
+        console.log("updatedGame: ", updatedGame)
 
         // redis 입력 - claim 여부 제외한 값
 
