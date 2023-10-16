@@ -1,10 +1,11 @@
 require("dotenv").config();
 const app = require('./app');
-const dbService = require('./services/db.service');
+const { dbService, redisService } = require("./services");
 
 const server = app.listen(process.env.PORT, async () => {
   console.log(`Listening to port ${process.env.PORT}`);
   await dbService.connect();
+  await redisService.connect()
   console.log(`Connected!`);
 });
 
@@ -30,6 +31,7 @@ process.on('SIGTERM', async () => {
   console.log('SIGTERM received');
   if (server) {
     await dbService.close();
+    await redisService.close()
     server.close();
   }
 });

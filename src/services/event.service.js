@@ -1,5 +1,7 @@
 const { Games, UserGameId } = require('../models')
 const gameContractInfo = require('../contractInfo')
+const { redisService } = require('./index');
+const { rpushGamesKey } = require('./redis.service');
 
 /**
  * 
@@ -142,13 +144,19 @@ const insertWinnerInfo = async (obj) => {
         } else {
             console.log("error: Attempted to query for game data via efpEvent, but the data is not present in the database.")
         }
-        // 이거 체크
+
         // redis에 넣을 데이터
-        const updatedGame = await Games[contractKey].findOne({ gameId: obj.gameId }).exec()
-        console.log("updatedGame: ", updatedGame)
+        const updatedGame = await Games[contractKey].findOne({ gameId: obj.gameId })
 
-        // redis 입력 - claim 여부 제외한 값
+        const isMemorySpaceAvailable = await redisService.isMemorySpaceAvailable()
+        // redis 용량 관리를 위한 오래된 메모리 삭제
+        if (!isMemorySpaceAvailable) {
+            // 오래된 게임 데이터 3개 삭제
+            await redisService.removeDatas()
+        }
 
+        // redis 입력 
+        await redisService.setData(`${contractKey}:${updatedGame.gameId}`, updatedGame)
         return true
     }
     return false
@@ -173,5 +181,20 @@ const insertClaimRewardInfo = async (contractAddress) => {
 module.exports = {
     updateGamePlayer,
     insertWinnerInfo,
-    insertClaimRewardInfo
+    insertClaimRewardInfo,
 }
+
+
+// updatedGame:  {
+//     _id: new ObjectId("652b7a94b2119d2509ee955f"),
+//     gameId: 7,
+//     player1: '0x1e1864802DcF4A0527EF4315Da37D135f6D1B64B',
+//     rewardClaimed: false,
+//     __v: 0,
+//     player2: '0x1e1864802DcF4A0527EF4315Da37D135f6D1B64B',
+//     player3: '0x521D5d2d40C80BAe1fec2e75B76EC03eaB82b4E0',
+//     player4: '0xd397AEc78be7fC14ADE2D2b5F03232b04A7AB42E',
+//     resultHash: '0x25375d4e11e292240c132e18e3cead049eb52e018d058713459c9639f9f6015d',
+//     winnerSpot: 2
+//   }
+  

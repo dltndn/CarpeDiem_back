@@ -1,6 +1,6 @@
 const httpStatus = require('http-status')
 const ethers = require('ethers');
-const { eventService } = require("../services");
+const { eventService, redisService } = require("../services");
 
 const abiCoder = new ethers.AbiCoder
 // BigNumber로 변환하는 함수
@@ -120,11 +120,43 @@ const getChangeManagementEvent = async (req, res) => {
 
 }
 
+const sampleData = {
+    _id: "652b7a94b2119d2509ee955f",
+    gameId: 7,
+    player1: '0x1e1864802DcF4A0527EF4315Da37D135f6D1B64B',
+    rewardClaimed: false,
+    __v: 0,
+    player2: '0x1e1864802DcF4A0527EF4315Da37D135f6D1B64B',
+    player3: '0x521D5d2d40C80BAe1fec2e75B76EC03eaB82b4E0',
+    player4: '0xd397AEc78be7fC14ADE2D2b5F03232b04A7AB42E',
+    resultHash: '0x25375d4e11e292240c132e18e3cead049eb52e018d058713459c9639f9f6015d',
+    winnerSpot: 2
+  }
+
+const test = async (req, res) => {
+    console.log('setData: ', await redisService.setData('test1', sampleData))
+    res.status(httpStatus.OK).send()
+}
+
+const test2 = async (req, res) => {
+    const result = await redisService.getDatas(['test1', 'test2'])
+    console.log('result: ', result)
+    res.status(httpStatus.OK).send()
+}
+
+const test3 = async (req, res) => {
+    await redisService.removeDatas()
+    res.status(httpStatus.OK).send()
+}
+
 module.exports = {
   getWebhooks,
   sendRandomReward,
   getBetEvent,
-  getEfpEvent
+  getEfpEvent,
+  test,
+  test2,
+  test3
 };
 
 
