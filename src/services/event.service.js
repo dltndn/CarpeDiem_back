@@ -1,6 +1,5 @@
 const { Games, UserGameId } = require('../models')
 const gameContractInfo = require('../contractInfo')
-const { redisService } = require('./index');
 const { rpushGamesKey } = require('./redis.service');
 
 /**
@@ -145,18 +144,6 @@ const insertWinnerInfo = async (obj) => {
             console.log("error: Attempted to query for game data via efpEvent, but the data is not present in the database.")
         }
 
-        // redis에 넣을 데이터
-        const updatedGame = await Games[contractKey].findOne({ gameId: obj.gameId })
-
-        const isMemorySpaceAvailable = await redisService.isMemorySpaceAvailable()
-        // redis 용량 관리를 위한 오래된 메모리 삭제
-        if (!isMemorySpaceAvailable) {
-            // 오래된 게임 데이터 3개 삭제
-            await redisService.removeDatas()
-        }
-
-        // redis 입력 
-        await redisService.setData(`${contractKey}:${updatedGame.gameId}`, updatedGame)
         return true
     }
     return false
@@ -179,6 +166,7 @@ const insertClaimRewardInfo = async (contractAddress) => {
 }
 
 module.exports = {
+    findKeyByAddress,
     updateGamePlayer,
     insertWinnerInfo,
     insertClaimRewardInfo,
