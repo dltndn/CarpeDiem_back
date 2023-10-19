@@ -86,10 +86,9 @@ const getEfpEvent = async (req, res) => {
   const webhookData = req.body;
   const { confirmed, streamId, logs } = webhookData;
 
-//   if (!validateStreamId(streamId)) {
-//     console.log("Unauthorized stream id");
-//     res.status(httpStatus.UNAUTHORIZED).send();
-//   }
+  if (!validateStreamId(streamId)) {
+    res.status(httpStatus.UNAUTHORIZED).send();
+  }
 
   if (!confirmed) {
     if (logs?.length > 0) {
@@ -149,7 +148,6 @@ const getCliaimRewardEvent = async (req, res) => {
     const { confirmed, streamId, logs } = webhookData;
 
     if (!validateStreamId(streamId)) {
-        console.log("Unauthorized stream id");
         res.status(httpStatus.UNAUTHORIZED).send();
     }
     
