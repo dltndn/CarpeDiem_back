@@ -5,6 +5,10 @@ const test = (req, res) => {
     res.status(httpStatus.OK).send({ accessToken })
 }
 
+const getTopWinners = (req, res, next) => {
+
+}
+
 module.exports = {
     test,
 }

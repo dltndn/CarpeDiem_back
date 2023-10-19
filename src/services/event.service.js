@@ -124,6 +124,38 @@ const updateGamePlayer = async (obj) => {
     return false
 }
 
+/** 
+ * @param obj contractAddress,
+              gameId,
+              playerAddress,
+              claimRewards
+  * @returns boolean
+*/
+const updateClaimRewardsInfo = async (obj) => {
+    const contractKey = findKeyByAddress(obj.contractAddress)
+    if (contractKey) {
+        // mongoDB gameId 조회
+        const game = await Games[contractKey].findOne({ gameId: obj.gameId })
+        // mongoDB 입력
+        if (game) {
+            // rewardClaimed 정보 수정
+            await game.updateOne({ rewardClaimed: true })
+            const userGameId = await UserGameId.findOne({ address: obj.playerAddress })
+            const beforTotalRewards = userGameId.totalRewards
+            if (beforTotalRewards) {
+                await userGameId.updateOne({ totalRewards: beforTotalRewards + obj.claimRewards })
+            } else {
+                await userGameId.updateOne({ totalRewards: obj.claimRewards })
+            }
+            await userGameId.save()
+        } else {
+            console.log("error: Attempted to query for game data via ClaimRewardEvent, but the data is not present in the database.")
+        }
+        return true
+    }
+    return false
+}
+
 /**
  * @param obj contractAddress,
               gameId,
@@ -168,6 +200,7 @@ const insertClaimRewardInfo = async (contractAddress) => {
 module.exports = {
     findKeyByAddress,
     updateGamePlayer,
+    updateClaimRewardsInfo,
     insertWinnerInfo,
     insertClaimRewardInfo,
 }

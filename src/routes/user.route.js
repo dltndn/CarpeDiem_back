@@ -10,6 +10,6 @@ router.route('/login').post(validate(userValidation.loginUser), userController.l
 router.route('/verify').post(validate(userValidation.verifySignature), userController.verifySignature);
 router.route('/logout').post(userController.logout);
 router.route('/updateAccessToken').post(isValidUserRefreshToken, userController.updateAccessToken);
-router.route('/').get(userController.getUsers);
+// router.route('/').get(userController.getUsers);
 
 module.exports = router;

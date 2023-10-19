@@ -8,5 +8,6 @@ const router = express.Router();
 
 
 router.route('/').get(isUserAuthenticated, gamesController.test);
+router.route('/topWinners').post(isUserAuthenticated, gamesController.test)
 
 module.exports = router;

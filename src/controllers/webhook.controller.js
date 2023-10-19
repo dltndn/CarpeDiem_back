@@ -10,14 +10,17 @@ const toBigNumber = (hexString) => ethers.toNumber(hexString);
 // 지갑 주소로 변환하는 함수
 const toWalletAddress = (hexString) => abiCoder.decode(["address"], hexString);
 
+// ether수량 단위로 변환하는 함수
+const toEtherAmount = (hexString) => ethers.formatEther(ethers.getBigInt(hexString))
+
 // Stream ID 유효성 검사
 const validateStreamId = (id) => {
   const env = process.env;
   const isAuth =
-    id === env.MORALIS_STREAM_ID_BET || id === env.MORALIS_STREAM_ID_EFP;
+    id === env.MORALIS_STREAM_ID_BET || id === env.MORALIS_STREAM_ID_EFP || id === env.MORALIS_STREAM_ID_CLAIMREWARD;
   if (!isAuth) {
     console.log("Unauthorized stream id");
-    console.log("Recieved: ", streamId);
+    console.log("Recieved: ", id);
   }
   return isAuth;
 };
@@ -60,7 +63,7 @@ const getBetEvent = async (req, res) => {
             .status(httpStatus.OK)
             .send({ message: "Update game information" });
         } else {
-          console.log("error: 잘못된 컨트랙 주소");
+          console.log("webhook getBetEvent error: 잘못된 컨트랙 주소");
           return res
             .status(httpStatus.UNAUTHORIZED)
             .send({ message: "Invalid contract address" });
@@ -83,10 +86,10 @@ const getEfpEvent = async (req, res) => {
   const webhookData = req.body;
   const { confirmed, streamId, logs } = webhookData;
 
-  if (!validateStreamId(streamId)) {
-    console.log("Unauthorized stream id");
-    res.status(httpStatus.UNAUTHORIZED).send();
-  }
+//   if (!validateStreamId(streamId)) {
+//     console.log("Unauthorized stream id");
+//     res.status(httpStatus.UNAUTHORIZED).send();
+//   }
 
   if (!confirmed) {
     if (logs?.length > 0) {
@@ -141,7 +144,50 @@ const getEfpEvent = async (req, res) => {
 
 // ClaimReward 이벤트 log 저장 함수
 // gameId, player, value
-const getCliaimRewardEvent = async (req, res) => {};
+const getCliaimRewardEvent = async (req, res) => {
+    const webhookData = req.body;
+    const { confirmed, streamId, logs } = webhookData;
+
+    if (!validateStreamId(streamId)) {
+        console.log("Unauthorized stream id");
+        res.status(httpStatus.UNAUTHORIZED).send();
+    }
+    
+    if (!confirmed) {
+        if (logs?.length > 0) {
+          try {
+            const { address: contractAddress, topic1, topic2, topic3 } = logs[0];
+            const obj = {
+              contractAddress: contractAddress,
+              gameId: toBigNumber(topic1),
+              playerAddress: toWalletAddress(topic2).toString(),
+              claimRewards: toEtherAmount(topic3),
+            };
+    
+            // 해당 game rewardClaimed true로 변경
+            // 해당 유저 claimReawards 증가
+            if (await eventService.updateClaimRewardsInfo(obj)) {
+                return res
+                  .status(httpStatus.OK)
+                  .send({ message: "Update game information" });
+              } else {
+                console.log("webhook getCliaimRewardEvent error: 잘못된 컨트랙 주소");
+                return res
+                  .status(httpStatus.UNAUTHORIZED)
+                  .send({ message: "Invalid contract address" });
+              }            
+
+          } catch (e) {
+            console.log(e);
+            return res
+              .status(httpStatus.INTERNAL_SERVER_ERROR)
+              .send({ error: e.message });
+          }
+        }
+      }
+      // blockchain confirmed
+      return res.status(httpStatus.OK).send({ message: "No logs found" });
+};
 
 // ChangedManagement 이벤트 log 저장 함수
 // address
@@ -180,6 +226,9 @@ const test3 = async (req, res) => {
 const test4 = async (req, res) => {
   // const isMemorySpaceAvailable = await redisService.isMemorySpaceAvailable()
   // console.log('isMemorySpaceAvailable: ' ,isMemorySpaceAvailable)
+  const sample = '0x0000000000000000000000000000000000000000000000000003691d6afc0000'
+  const etherAmount = toEtherAmount(sample)
+  console.log('etherAmount: ', etherAmount)
   res.status(httpStatus.OK).send();
 };
 
@@ -188,6 +237,7 @@ module.exports = {
   sendRandomReward,
   getBetEvent,
   getEfpEvent,
+  getCliaimRewardEvent,
   test,
   test2,
   test3,

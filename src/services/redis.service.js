@@ -106,6 +106,14 @@ const removeDatas = async () => {
   }
 }
 
+const getTopWinnersRedis = async () => {
+  try {
+
+  } catch (e) {
+
+  }
+}
+
 module.exports = {
   connect,
   close,
@@ -114,4 +122,5 @@ module.exports = {
   setData,
   getDatas,
   removeDatas,
+  getTopWinnersRedis,
 };

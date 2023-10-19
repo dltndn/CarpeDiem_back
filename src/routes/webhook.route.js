@@ -6,6 +6,7 @@ const router = express.Router();
 router.route('/event').post(webhookController.sendRandomReward);
 router.route('/betEvent').post(webhookController.getBetEvent);
 router.route('/efpEvent').post(webhookController.getEfpEvent)
+router.route('/claimRewardEvent').post(webhookController.getCliaimRewardEvent)
 router.route('/').get(webhookController.getWebhooks);
 
 router.route('/betEventTest').post(webhookController.getBetEvent)
