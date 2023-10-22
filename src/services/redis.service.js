@@ -79,7 +79,7 @@ const getDatas = async (keyStrArr) => {
     }
     return parseArr
   } catch (e) {
-    console.log('redis mGet error: ', e)
+    console.log('redis getDatas error: ', e)
     return false
   }
 }
@@ -106,14 +106,6 @@ const removeDatas = async () => {
   }
 }
 
-const getTopWinnersRedis = async () => {
-  try {
-
-  } catch (e) {
-
-  }
-}
-
 module.exports = {
   connect,
   close,
@@ -121,6 +113,5 @@ module.exports = {
   getAllGameKeys,
   setData,
   getDatas,
-  removeDatas,
-  getTopWinnersRedis,
+  removeDatas
 };

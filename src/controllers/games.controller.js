@@ -7,6 +7,10 @@ const test = (req, res) => {
     res.status(httpStatus.OK).send({ accessToken })
 }
 
+/**
+ * 
+ * @param {*} req - { amount: number }
+ */
 const getTopWinners = async (req, res) => {
     const reqData = req.body;
     const { amount } = reqData
@@ -33,7 +37,57 @@ const getTopWinners = async (req, res) => {
 
 }
 
+/**
+ * 
+ * @param {*} req - { playerAddress: string, betAmount: number, amount: number, seqNum: number }
+ * @param {*} res  - [{gameId, player1, player2, player3, player4, rewardClaimed, winnerSpot}, ...]
+ */
+const getUserGames = async (req, res) => {
+    const reqData = req.body;
+    const { playerAddress, betAmount, amount, seqNum } = reqData
+
+    // getUserGameids from mongoDB
+    const obj = {
+        playerAddress,
+        betAmount,
+        amount,
+        seqNum
+    }
+    const games = await gameService.getUserGames(obj)
+    if (games.length === 0) {
+        res.status(httpStatus.NO_CONTENT).send()
+    } else if (games === null) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    }
+
+    res.status(httpStatus.OK).send({ games })
+}
+
+/**
+ * 
+ * @param {*} req - { betAmount: number, amount: number, seqNum: number }
+ * @param {*} res - [{gameId, player1, player2, player3, player4, winnerSpot}, ...]
+ */
+const getCurrentGames = async (req, res) => {
+    const reqData = req.body;
+    const { betAmount, amount, seqNum } = reqData
+
+    const obj = {
+        betAmount,
+        amount,
+        seqNum
+    }
+    // getUserGameids from mongoDB
+    
+    
+    // getGames for redis or mongoDB
+}
+
 module.exports = {
     test,
-    getTopWinners
+    getTopWinners,
+    getUserGames,
+    getCurrentGames
 }
+
+

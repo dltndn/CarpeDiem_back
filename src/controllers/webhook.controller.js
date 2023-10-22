@@ -104,9 +104,18 @@ const getEfpEvent = async (req, res) => {
         if (await eventService.insertWinnerInfo(obj)) {
             const contractKey = eventService.findKeyByAddress(obj.contractAddress)
           // redis에 넣을 데이터
-          const updatedGame = await Games[contractKey].findOne({
+          const dbUpdatedGame = await Games[contractKey].findOne({
             gameId: obj.gameId,
           });
+
+          const updatedGame = {
+            gameId: dbUpdatedGame.gameId,
+            player1: dbUpdatedGame.player1,
+            player2: dbUpdatedGame.player2,
+            player3: dbUpdatedGame.player3,
+            player4: dbUpdatedGame.player4,
+            winnerSpot: dbUpdatedGame.winnerSpot
+          }
 
           const isMemorySpace = await redisService.isMemorySpaceAvailable();
           // redis 용량 관리를 위한 오래된 메모리 삭제
@@ -224,9 +233,8 @@ const test3 = async (req, res) => {
 const test4 = async (req, res) => {
   // const isMemorySpaceAvailable = await redisService.isMemorySpaceAvailable()
   // console.log('isMemorySpaceAvailable: ' ,isMemorySpaceAvailable)
-  const sample = '0x0000000000000000000000000000000000000000000000000003691d6afc0000'
-  const etherAmount = toEtherAmount(sample)
-  console.log('etherAmount: ', etherAmount)
+  const result = await redisService.getAllGameKeys()
+  console.log("result: ", result)
   res.status(httpStatus.OK).send();
 };
 

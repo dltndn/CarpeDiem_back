@@ -181,28 +181,11 @@ const insertWinnerInfo = async (obj) => {
     return false
 }
 
-/**
- * 
- * @param contractAddress 
- * @returns boolean
- */
-const insertClaimRewardInfo = async (contractAddress) => {
-    const contractKey = findKeyByAddress(contractAddress)
-    if (contractKey) {
-        
-        // mongoDB 입력
-
-        return true
-    }
-    return false
-}
-
 module.exports = {
     findKeyByAddress,
     updateGamePlayer,
     updateClaimRewardsInfo,
     insertWinnerInfo,
-    insertClaimRewardInfo,
 }
 
 
