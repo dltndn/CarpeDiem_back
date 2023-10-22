@@ -13,6 +13,6 @@ router.route('/betEventTest').post(webhookController.getBetEvent)
 router.route('/test').get(webhookController.test)
 router.route('/test2').get(webhookController.test2)
 router.route('/test3').get(webhookController.test3)
-router.route('/test4').get(webhookController.test4)
+router.route('/test4').post(webhookController.test4)
 
 module.exports = router;

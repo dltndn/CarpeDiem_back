@@ -39,7 +39,7 @@ const close = async () => {
 const isMemorySpaceAvailable = async () => {
   const memoryInfo = await redisClient.info('memory');
   let usedMemory = memoryInfo.split('\n').find(line => line.startsWith('used_memory')).split(':')[1];
-  if (Number(usedMemory) > MAX_REDIS_MEMORY) return false
+  if (Number(usedMemory) > MAX_REDIS_MEMORY * 0.7) return false
   return true
 }
 
@@ -53,10 +53,21 @@ const getAllGameKeys = async () => {
   }
 }
 
-const setData = async (keyStr, value) => {
+/**
+ * 
+ * @param {*} keyStr gameKeyList에 저장할 값 ex)Game_2:15 
+ * @param {*} gameType game타입 ex) Game_2
+ * @param {*} score - redis sorted set타입 score
+ * @param {*} value 
+ * @returns 
+ */
+const setData = async (keyStr, gameType, score, value) => {
   try {
+    const strVal = JSON.stringify(value)
+    // gameKey list 타입에 저장
     await redisClient.rPush('gameKeyList', keyStr)
-    return await redisClient.set(keyStr, JSON.stringify(value))
+    // game 데이터 sotred set 타입으로 저장
+    return await redisClient.zAdd(gameType,{ score, value: strVal })
   } catch (e) {
     console.log('redis setData error: ', e)
   }
@@ -64,12 +75,19 @@ const setData = async (keyStr, value) => {
 
 /**
  * 
- * @param keyStrArr key값 배열
+ * @param gameType key값 - game타입 ex) Game_2
+ * @param amount 불러올 데이터 컬럼 수량
+ * @param seqNum 몇 번째인지
  * @returns data 배열 반환
  */
-const getDatas = async (keyStrArr) => {
+const getDatas = async (gameType, amount, seqNum) => {
+  let startNum = -1 * amount * seqNum
+  let endNum = startNum + amount - 1
   try {
-    const result = await redisClient.mGet(keyStrArr)
+    const result = await redisClient.zRange(gameType, startNum, endNum)
+    if (result.length === 0) {
+      return []
+    }
     let parseArr = []
     for (const val of result) {
       const data = JSON.parse(val)
@@ -86,20 +104,24 @@ const getDatas = async (keyStrArr) => {
 
 /**
  * 
- * @description 오래된 데이터 3개 삭제
+ * @description 오래된 데이터 500개 삭제
  * @returns bool
  */
 const removeDatas = async () => {
   try {
-    const removedGameKeys = await redisClient.lRange('gameKeyList', 0, 2)
-    await redisClient.lTrim('gameKeyList', 3, -1)
-    await redisClient.del(removedGameKeys, (err, data) => {
-      if (err) {
-        console.log('redis del error: ', err)
-        return false
+    // ex) ["Game_2:3", "Game_2:4", "Game_2:5"]
+    const removedGameKeys = await redisClient.lRange('gameKeyList', 0, 499) 
+    await redisClient.lTrim('gameKeyList', 500, -1)
+
+    // sorted set 데이터 삭제 코드
+    for (const val of removedGameKeys) {
+      const [gameType, gameId] = val.trim().split(':')
+      const game = await redisClient.zRangeByScore(gameType, gameId, gameId)
+      for (const gameVal of game) {
+        await redisClient.zRem(gameType, gameVal) 
       }
-      return true
-    })
+    }
+
   } catch (e) {
     console.log('redis removeDatas error: ', e)
     return false

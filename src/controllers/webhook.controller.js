@@ -127,6 +127,8 @@ const getEfpEvent = async (req, res) => {
           // redis 입력
           await redisService.setData(
             `${contractKey}:${updatedGame.gameId}`,
+            contractKey,
+            updatedGame.gameId,
             updatedGame
           );
           return res
@@ -201,16 +203,11 @@ const getCliaimRewardEvent = async (req, res) => {
 const getChangeManagementEvent = async (req, res) => {};
 
 const sampleData = {
-  _id: "652b7a94b2119d2509ee955f",
-  gameId: 7,
+  gameId: 10,
   player1: "0x1e1864802DcF4A0527EF4315Da37D135f6D1B64B",
-  rewardClaimed: false,
-  __v: 0,
   player2: "0x1e1864802DcF4A0527EF4315Da37D135f6D1B64B",
   player3: "0x521D5d2d40C80BAe1fec2e75B76EC03eaB82b4E0",
   player4: "0xd397AEc78be7fC14ADE2D2b5F03232b04A7AB42E",
-  resultHash:
-    "0x25375d4e11e292240c132e18e3cead049eb52e018d058713459c9639f9f6015d",
   winnerSpot: 2,
 };
 
@@ -233,8 +230,30 @@ const test3 = async (req, res) => {
 const test4 = async (req, res) => {
   // const isMemorySpaceAvailable = await redisService.isMemorySpaceAvailable()
   // console.log('isMemorySpaceAvailable: ' ,isMemorySpaceAvailable)
-  const result = await redisService.getAllGameKeys()
-  console.log("result: ", result)
+  const data = req.body
+  const { index } = data
+  switch(index) {
+    case 0: 
+      const result = await redisService.getAllGameKeys()
+      console.log("result: ", result)
+      break
+    case 1:
+      await redisService.setData('Game_3:10', 'Game_3', 10, sampleData)
+      break
+    case 2:
+      const result2 = await redisService.getDatas('Game_3', 3, 1)
+      console.log("result2: ", result2)
+      break
+    case 3:
+      await redisService.removeDatas()
+      break
+    case 4:
+      await redisService.isMemorySpaceAvailable()
+      break
+    default:
+      console.log('?')
+  }
+  
   res.status(httpStatus.OK).send();
 };
 
