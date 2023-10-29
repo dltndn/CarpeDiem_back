@@ -95,7 +95,7 @@ const getDatas = async (gameType, amount, seqNum) => {
         parseArr.push(data)
       }
     }
-    return parseArr
+    return parseArr.reverse()
   } catch (e) {
     console.log('redis getDatas error: ', e)
     return false
@@ -137,3 +137,12 @@ module.exports = {
   getDatas,
   removeDatas
 };
+
+// const updatedGame = {
+//   gameId: dbUpdatedGame.gameId,
+//   player1: dbUpdatedGame.player1,
+//   player2: dbUpdatedGame.player2,
+//   player3: dbUpdatedGame.player3,
+//   player4: dbUpdatedGame.player4,
+//   winnerSpot: dbUpdatedGame.winnerSpot
+// }

@@ -1,10 +1,11 @@
 const httpStatus = require("http-status");
-const { gameService } = require("../services");
+const { gameService, redisService } = require("../services");
+const getDbKey = require('../utils/getDbKey')
 const ethers = require("ethers");
 
-const test = (req, res) => {
-    accessToken = 1234
-    res.status(httpStatus.OK).send({ accessToken })
+const test = async (req, res) => {
+    const games = await gameService.getGamesByMongo(2, [12, 14, 13])
+    res.status(httpStatus.OK).send({ games })
 }
 
 /**
@@ -53,10 +54,18 @@ const getUserGames = async (req, res) => {
         amount,
         seqNum
     }
-    const games = await gameService.getUserGames(obj)
+
+    const gameIds = await gameService.getUserGameIdsByMongo(obj)
+    if (gameIds === undefined) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    } else if (gameIds.length === 0) {
+        res.status(httpStatus.NO_CONTENT).send()
+    }
+
+    const games = await gameService.getGamesByMongo(obj.betAmount, gameIds)
     if (games.length === 0) {
         res.status(httpStatus.NO_CONTENT).send()
-    } else if (games === null) {
+    } else if (games === undefined) {
         res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
     }
 
@@ -77,10 +86,46 @@ const getCurrentGames = async (req, res) => {
         amount,
         seqNum
     }
-    // getUserGameids from mongoDB
     
+    // getGames by redis or mongoDB
+    // redis에서 game들 가져오기
+    const redisDatas = await redisService.getDatas(getDbKey.getGamesKeyByBetAmount(obj.betAmount), obj.amount, obj.seqNum)
+    if (!redisDatas) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    }
     
-    // getGames for redis or mongoDB
+    const dataAmountForMongo = obj.amount - redisDatas.length
+
+    if (dataAmountForMongo === 0) {
+        // redis에 모든 타겟 정보가 있을 때
+        const lastGameId = redisDatas[0].gameId + 1
+        const games = [...redisDatas]
+        res.status(httpStatus.OK).send({ games, lastGameId })
+    } else if (dataAmountForMongo === obj.amount) {
+        // redis에 모든 타겟 정보가 없을 때
+        // mongoDB에서 최신순으로 2번째 데이터부터
+        const { gameIds, lastGameId } = await gameService.getGameIdsByMongo(obj)
+        const games = await gameService.getGamesByMongo(obj.betAmount, gameIds)
+        res.status(httpStatus.OK).send({ games, lastGameId })
+    } else {
+        // redis에 일부 타겟 정보만 있을 때
+        const lastGameId = redisDatas[0].gameId + 1
+        const mongoAmount = obj.amount - redisDatas.length
+        let mongoGameIds = []
+        let startIndex = redisDatas[redisDatas.length-1].gameId - 1
+        for (let i=startIndex; i>startIndex-mongoAmount; --i) {
+            if (i < 1) {
+                break
+            }
+            mongoGameIds.push(i)
+        }
+        const mongoGames = await gameService.getGamesByMongo(obj.betAmount, mongoGameIds)
+        if (mongoGames === undefined) {
+            res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+        }
+        const games = redisDatas.concat(mongoGames)
+        res.status(httpStatus.OK).send({ games, lastGameId })
+    }
 }
 
 module.exports = {

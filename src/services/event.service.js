@@ -1,40 +1,5 @@
 const { Games, UserGameId } = require('../models')
-const gameContractInfo = require('../contractInfo')
-const { rpushGamesKey } = require('./redis.service');
-
-/**
- * 
- * @param address contract address
- * @returns game_2 || game_10 || game_50 || game_250
- */
-const findKeyByAddress = (address) => {
-    for (const key in gameContractInfo) {
-        if (gameContractInfo[key].toLowerCase() === address) {
-          return key;
-        }
-      }
-      return undefined;
-}
-
-/**
- * 
- * @param contractKey 
- * @returns string
- */
-const getGameIdKeyByContractKey = (contractKey) => {
-    switch (contractKey) {
-        case 'Game_2':
-            return 'gameIds_2'
-        case 'Game_10':
-            return 'gameIds_10'
-        case 'Game_50':
-            return 'gameIds_50'
-        case 'Game_250':
-            return 'gameIds_250'
-        default:
-            return null
-    }
-}
+const {findKeyByAddress, getGameIdKeyByContractKey} = require('../utils/getDbKey')
 
 /**
  * 

@@ -1,43 +1,96 @@
 const { Games, UserGameId } = require('../models')
-const gameContractInfo = require('../contractInfo')
+const getDbKey = require('../utils/getDbKey')
 
 /**
  * 
- * @param betAmount 
- * @returns string
+ * @param {*} arr 
+ * @param {*} amount 
+ * @param {*} seqNum 
+ * @returns []
+ * @description 배열의 끝 부터 amount개의 요소를 (seqNum * amount) - amonut번째 부터 가져오기
  */
-const getGameIdKeyByBetAmount = (betAmount) => {
-    switch (betAmount) {
-        case 2:
-            return 'gameIds_2'
-        case 10:
-            return 'gameIds_10'
-        case 50:
-            return 'gameIds_50'
-        case 250:
-            return 'gameIds_250'
-        default:
-            return null
+const getArrayElements = (arr, amount, seqNum) => {
+    const start = -1 * amount * seqNum;
+    if (seqNum === 1) {
+        return arr.slice(start);
+    }
+    const end = start + amount;
+    return arr.slice(start, end);
+}
+
+/**
+ * 
+ * @param {*} obj - { playerAddress, betAmount, amount, seqNum }
+ * @returns gameIdArr | undefined
+ */
+const getUserGameIdsByMongo = async (obj) => {
+    const gameIdKey = getDbKey.getGameIdKeyByBetAmount(obj.betAmount)
+    try {
+        // mongoDB에서 플레이어 게임id 배열 가져오기 
+        const dbGameIds = await UserGameId.findOne({ address: obj.playerAddress }, gameIdKey).exec()
+        const gameIdArr = getArrayElements(dbGameIds[gameIdKey], obj.amount, obj.seqNum)
+        if (gameIdArr.length === 0) {
+            return []
+        } 
+        return gameIdArr
+    } catch (e) {
+        console.log("game.service getUserGameIdsByMongo함수 에러: ", e)
+        return undefined
     }
 }
 
 /**
  * 
- * @param betAmount 
- * @returns string
+ * @param {*} obj - { betAmount, amount, seqNum }
  */
-const getGamesKeyByBetAmount = (betAmount) => {
-    switch (betAmount) {
-        case 2:
-            return 'Game_2'
-        case 10:
-            return 'Game_10'
-        case 50:
-            return 'Game_50'
-        case 250:
-            return 'Game_250'
-        default:
-            return null
+const getGameIdsByMongo = async (obj) => {
+    const gamesKey = getDbKey.getGamesKeyByBetAmount(obj.betAmount)
+    try {
+        let gameIds = []
+        // 최신 게임의 게임id 가져오기
+        const lastGame = await Games[gamesKey].find().sort({ gameId: -1 }).limit(1).exec()
+        const lastGameId = lastGame.gameId
+        const startIndex = lastGameId - 1 - ((obj.seqNum-1) * obj.amount)
+        for (let i=startIndex; i>startIndex - amount; --i) {
+            if (i < 1) {
+                break
+            }
+            gameIds.push(i)
+        }
+        return { gameIds, lastGameId }
+    } catch (e) {
+        console.log("game.service getGameIdsByMongo함수 에러: ", e)
+        return undefined
+    }
+}
+
+/**
+ * 
+ * @param {*} betAmount 
+ * @param {*} gameIdArr 
+ * @returns [{ gameId, player1, player2, player3, player4, winnerSpot, rewardClaimed }] | undefined
+ */
+const getGamesByMongo = async (betAmount, gameIdArr) => {
+    const gamesKey = getDbKey.getGamesKeyByBetAmount(betAmount)
+    try {
+        let result = []
+        const dbGames = await Games[gamesKey].find({ gameId: { $in: gameIdArr } }).exec();
+        for (const game of dbGames) {
+            result.push({
+                gameId: game.gameId,
+                player1: game.player1,
+                player2: game.player2,
+                player3: game.player3,
+                player4: game.player4,
+                winnerSpot: game.winnerSpot,
+                rewardClaimed: game.rewardClaimed
+            })
+        }
+        
+        return result.reverse()
+    } catch (e) {
+        console.log("game.service getGamesByMongo 에러: ", e)
+        return undefined
     }
 }
 
@@ -55,53 +108,9 @@ const getTopPrizeWinners = async (amount) => {
     } 
 }
 
-const getArrayElements = (arr, amount, seqNum) => {
-    const start = -1 * amount * seqNum;
-    if (seqNum === 1) {
-        return arr.slice(start);
-    }
-    const end = start + amount;
-    return arr.slice(start, end);
-}
-
-/**
- * 
- * @param {*} obj - { playerAddress, betAmount, amount, seqNum }
- * @returns [{ gameId, player1, player2, player3, player4, winnerSpot, rewardClaimed }] | null
- */
-const getUserGames = async (obj) => {
-    const gameIdKey = getGameIdKeyByBetAmount(obj.betAmount)
-    const gamesKey = getGamesKeyByBetAmount(obj.betAmount)
-
-    try {
-        // mongoDB에서 플레이어 게임id 배열 가져오기 
-        const dbGameIds = await UserGameId.findOne({ address: obj.playerAddress }, gameIdKey).exec()
-        const gameIdArr = getArrayElements(dbGameIds[gameIdKey], obj.amount, obj.seqNum)
-        if (gameIdArr.length === 0) {
-            return []
-        } 
-        // mongoDB에서 game 객체 배열 가져오기
-        let result = []
-        const dbGames = await Games[gamesKey].find({ gameId: { $in: gameIdArr } }).exec();
-        for (const game of dbGames) {
-            result.push({
-                gameId: game.gameId,
-                player1: game.player1,
-                player2: game.player2,
-                player3: game.player3,
-                player4: game.player4,
-                winnerSpot: game.winnerSpot,
-                rewardClaimed: game.rewardClaimed
-            })
-        }
-        return result
-    } catch (e) {
-        console.log('gameService getUserGameid error: ', e)
-        return null
-    }
-}
-
 module.exports = {
     getTopPrizeWinners,
-    getUserGames
+    getUserGameIdsByMongo,
+    getGamesByMongo,
+    getGameIdsByMongo
 }
