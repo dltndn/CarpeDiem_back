@@ -9,7 +9,8 @@ const router = express.Router();
 
 
 router.route('/').get(gamesController.test);
-router.route('/topWinners').post(gamesController.getTopWinners)
+router.route('/topWinnersMini').get(gamesController.getTopWinnersMini)
+router.route('/topWinners').post(isValidUserRefreshToken, gamesController.getTopWinners)
 router.route('/userGames').post(isValidUserRefreshToken, gamesController.getUserGames)
 router.route('/currentGames').post(gamesController.getCurrentGames)
 

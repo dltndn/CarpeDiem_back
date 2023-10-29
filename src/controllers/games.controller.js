@@ -10,6 +10,33 @@ const test = async (req, res) => {
 
 /**
  * 
+ * @param {*} req 
+ * @param {*} res 
+ */
+const getTopWinnersMini = async (req, res) => {
+    // getTopPrizeWinners from mongoDB
+    const players = await gameService.getTopPrizeWinners(3)
+
+    if (players) {
+        let winners = []
+        for (const val of players) {
+            if (val.totalRewards) {
+                const info = {
+                    playerAddress: ethers.getAddress(val.address),
+                    totalRewards: val.totalRewards,
+                }
+                winners.push(info)
+            }
+        }
+        res.status(httpStatus.OK).send({ winners })
+    } else {
+        console.log('There are no players yet.')
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    }
+}
+
+/**
+ * 
  * @param {*} req - { amount: number }
  */
 const getTopWinners = async (req, res) => {
@@ -33,7 +60,7 @@ const getTopWinners = async (req, res) => {
         res.status(httpStatus.OK).send({ winners })
     } else {
         console.log('There are no players yet.')
-        res.status(httpStatus.OK).send()
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
     }
 
 }
@@ -130,6 +157,7 @@ const getCurrentGames = async (req, res) => {
 
 module.exports = {
     test,
+    getTopWinnersMini,
     getTopWinners,
     getUserGames,
     getCurrentGames
