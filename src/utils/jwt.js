@@ -38,6 +38,9 @@ const accessTokenCookieOptions = {
 if (process.env.NODE_ENV === 'development') {
   refreshTokenCookieOptions.domain = 'localhost';
   accessTokenCookieOptions.domain = 'localhost';
+} else if (process.env.NODE_ENV === 'production') {
+  refreshTokenCookieOptions.domain = process.env.FRONT_DOMAIN;
+  accessTokenCookieOptions.domain = process.env.FRONT_DOMAIN;
 }
 
 module.exports = {

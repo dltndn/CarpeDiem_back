@@ -8,11 +8,13 @@ const { isValidUserRefreshToken } = require('../middlewares/authorization')
 const router = express.Router();
 
 
-router.route('/').get(gamesController.test);
+router.route('/').post(gamesController.test);
 router.route('/topWinnersMini').get(gamesController.getTopWinnersMini)
 router.route('/topWinners').post(isValidUserRefreshToken, gamesController.getTopWinners)
 router.route('/userGames').post(isValidUserRefreshToken, gamesController.getUserGames)
 router.route('/currentGames').post(gamesController.getCurrentGames)
+router.route('/getGamesByIds').post(gamesController.getGamesByIds)
+router.route('/userTotalRewards').post(isValidUserRefreshToken, gamesController.getUserTotalRewards)
 
 
 module.exports = router;

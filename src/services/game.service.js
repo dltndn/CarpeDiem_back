@@ -49,9 +49,9 @@ const getGameIdsByMongo = async (obj) => {
         let gameIds = []
         // 최신 게임의 게임id 가져오기
         const lastGame = await Games[gamesKey].find().sort({ gameId: -1 }).limit(1).exec()
-        const lastGameId = lastGame.gameId
+        const lastGameId = lastGame[0].gameId
         const startIndex = lastGameId - 1 - ((obj.seqNum-1) * obj.amount)
-        for (let i=startIndex; i>startIndex - amount; --i) {
+        for (let i=startIndex; i>startIndex - obj.amount; --i) {
             if (i < 1) {
                 break
             }
@@ -108,9 +108,24 @@ const getTopPrizeWinners = async (amount) => {
     } 
 }
 
+const getUserInfo = async (address) => {
+    try {
+        const userInfo = await UserGameId.findOne({ address }).exec()
+        if (userInfo) {
+            return userInfo
+        } else {
+            return null
+        }
+    } catch (e) {
+        console.log('gameService getUserInfo error: ', e)
+        return undefined
+    }
+}
+
 module.exports = {
     getTopPrizeWinners,
     getUserGameIdsByMongo,
     getGamesByMongo,
-    getGameIdsByMongo
+    getGameIdsByMongo,
+    getUserInfo
 }

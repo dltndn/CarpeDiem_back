@@ -4,8 +4,11 @@ const getDbKey = require('../utils/getDbKey')
 const ethers = require("ethers");
 
 const test = async (req, res) => {
-    const games = await gameService.getGamesByMongo(2, [12, 14, 13])
-    res.status(httpStatus.OK).send({ games })
+    const reqData = req.body;
+    const { amount } = reqData
+
+
+    res.status(httpStatus.OK).send({ amount })
 }
 
 /**
@@ -63,6 +66,22 @@ const getTopWinners = async (req, res) => {
         res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
     }
 
+}
+
+const getUserTotalRewards = async (req, res) => {
+    const reqData = req.body;
+    const { playerAddress } = reqData
+
+    const playerInfo = await gameService.getUserInfo(playerAddress)
+
+    if (playerInfo === undefined) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    } else if (playerInfo === null) {
+        res.status(httpStatus.OK).send({ rewards: 0 })
+    } else {
+        const rewards = playerInfo.totalRewards
+        res.status(httpStatus.OK).send({ rewards })
+    }
 }
 
 /**
@@ -132,8 +151,11 @@ const getCurrentGames = async (req, res) => {
         // redis에 모든 타겟 정보가 없을 때
         // mongoDB에서 최신순으로 2번째 데이터부터
         const { gameIds, lastGameId } = await gameService.getGameIdsByMongo(obj)
-        const games = await gameService.getGamesByMongo(obj.betAmount, gameIds)
-        res.status(httpStatus.OK).send({ games, lastGameId })
+        const mongoGames = await gameService.getGamesByMongo(obj.betAmount, gameIds)
+        if (mongoGames === undefined) {
+            res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+        }
+        res.status(httpStatus.OK).send({ games: mongoGames, lastGameId })
     } else {
         // redis에 일부 타겟 정보만 있을 때
         const lastGameId = redisDatas[0].gameId + 1
@@ -155,12 +177,30 @@ const getCurrentGames = async (req, res) => {
     }
 }
 
+/**
+ * 
+ * @param {*} req - { betAmount: number, gameIds: number[] }
+ * @param {*} res - [{gameId, player1, player2, player3, player4, winnerSpot}, ...]
+ */
+const getGamesByIds = async (req, res) => {
+    const reqData = req.body;
+    const { betAmount, gameIds } = reqData
+
+    const mongoGames = await gameService.getGamesByMongo(betAmount, gameIds)
+    if (mongoGames === undefined) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    }
+    res.status(httpStatus.OK).send({ games: mongoGames })
+}
+
 module.exports = {
     test,
     getTopWinnersMini,
     getTopWinners,
+    getUserTotalRewards,
     getUserGames,
-    getCurrentGames
+    getCurrentGames,
+    getGamesByIds
 }
 
 

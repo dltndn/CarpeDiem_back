@@ -23,10 +23,10 @@ const defaultRoutes = [
 ];
 
 defaultRoutes.forEach((route) => {
-  if (route.path === '/games') {
-    router.use(route.path, limiter,route.route);
+  if (route.path === '/webhook') {
+    router.use(route.path,route.route);
   } else {
-    router.use(route.path, route.route);
+    router.use(route.path, limiter, route.route);
   }
 });
 

@@ -1,13 +1,16 @@
-const express = require('express');
-require('express-async-errors');
-const helmet = require('helmet');
-const cors = require('cors');
-const mongoSanitize = require('express-mongo-sanitize');
-const cookieParser = require('cookie-parser');
-const compression = require('compression');
-const passport = require('passport');
-const routes = require('./routes');
-const { notFoundErrorHandler, globalErrorHandler } = require('./middlewares/error');
+const express = require("express");
+require("express-async-errors");
+const helmet = require("helmet");
+const cors = require("cors");
+const mongoSanitize = require("express-mongo-sanitize");
+const cookieParser = require("cookie-parser");
+const compression = require("compression");
+const passport = require("passport");
+const routes = require("./routes");
+const {
+  notFoundErrorHandler,
+  globalErrorHandler,
+} = require("./middlewares/error");
 
 const app = express();
 
@@ -15,8 +18,25 @@ const app = express();
 app.use(helmet());
 
 // setup CORS
-app.use(cors({ credentials: true, origin: true }));
-app.options('*', cors());
+let whitelist = [];
+if (process.env.NODE_ENV === "development") {
+  whitelist = ["http://localhost:3000", process.env.FRONT_ADDRESS];
+} else if (process.env.NODE_ENV === "production") {
+  whitelist = [process.env.FRONT_ADDRESS];
+}
+
+const corsOptions = {
+  credentials: true,
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
+app.use(cors(corsOptions));
+app.options("*", cors());
 
 // body-parsers
 app.use(express.json());
@@ -33,7 +53,7 @@ app.use(compression());
 app.use(passport.initialize());
 
 // api routes
-app.use('/api', routes);
+app.use("/api", routes);
 
 // handle error
 app.use(notFoundErrorHandler);
