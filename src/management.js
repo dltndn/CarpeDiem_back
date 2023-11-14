@@ -1,19 +1,288 @@
-const { dbService, redisService } = require("./services");
+const { dbService, redisService, gameService, eventService } = require("./services");
+const { UserGameId, Games } = require("./models")
+const contractInfo = require("./contractInfo")
+const { getGameIdKeyByContractKey } = require("./utils/getDbKey")
+const ethers = require('ethers')
+require("dotenv").config();
+const readline = require("readline");
 
-const connectDb = async () => {
-  await dbService.connect();
-  await redisService.connect();
-  console.log(`Connected!`);
-};
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
 
-const disconnectDb = async () => {
-    await dbService.close();
-    await redisService.close()
-    console.log('Disconnected!')
-}
+const INFURA_POLYGON_URL = `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
+const INFURA_MUMBAI_URL = `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`
+const CHAIN_NAME = "Mumbai"
+const CHAIN_ID = 80001
 
 // mongoDB 초기화
+// - 베팅금액별 초기화
+// - 유저 정보 초기화
+const removeMongoData = async (num) => {
+    try {
+        switch (num) {
+            case 1: // 유저 참여 게임 정보 전부 삭제
+                await UserGameId.deleteMany({}) 
+                console.log("유저 참가 정보 및 토탈 리워드 삭제")
+                break
+            case 2: // 게임 정보 전부 삭제
+                await Games.Game_2.deleteMany({})
+                console.log("Game_2 삭제 완료")
+                await Games.Game_10.deleteMany({})
+                console.log("Game_10 삭제 완료")
+                await Games.Game_50.deleteMany({})
+                console.log("Game_50 삭제 완료")
+                await Games.Game_250.deleteMany({})
+                console.log("Game_250 삭제 완료")
+            case 3: // Game_2만 삭제
+                await Games.Game_2.deleteMany({})
+                console.log("Game_2 삭제 완료")
+                break
+            case 4: // Game_10만 삭제
+                await Games.Game_10.deleteMany({})
+                console.log("Game_10 삭제 완료")
+                break
+            case 5: // Game_50만 삭제
+                await Games.Game_50.deleteMany({})
+                console.log("Game_50 삭제 완료")
+                break
+            case 6: // Game_250만 삭제
+                await Games.Game_250.deleteMany({})
+                console.log("Game_250 삭제 완료")
+                break
+            default :
+                console.log("잘못된 선택")
+                break
+        }
+    } catch (e) {
+        console.log("removeMongoData error: ", e)
+    }
+}
+
 // redis 초기화
-// 누락된 오더들 추가
-//  - mongoDB 오더들
+const removeRedisData = async () => {
+    await redisService.removeAllData()
+  };
+  
+
+// 누락된 게임들
+//  - mongoDB 게임들 추가(게임별))
+// lastValidateId - 마지막으로 확인할 id
+const managementMongoData = async (num, lastValidateId) => {
+    // 최신 game id 조회
+    // 마지막으로 확인한 game id까지 mongoDB조회 반복 - player 4명 존재여부
+    // 누락된 id들 블록체인에서 데이터 조회 후 mongoDB에 저장
+    try {
+        switch (num) {
+            case 1: // 누락된 Game_2 오더 번호 조회
+                await findMissingGameId("Game_2", lastValidateId)
+                break
+            case 2: // 누락된 Game_10 오더 번호 조회
+                await findMissingGameId("Game_10", lastValidateId)
+                break
+            case 3: // 누락된 Game_50 오더 번호 조회
+                await findMissingGameId("Game_50", lastValidateId)
+                break
+            case 4: // 누락된 Game_250 오더 번호 조회
+                await findMissingGameId("Game_250", lastValidateId)
+                break
+            case 5: // 누락된 Game_2 오더 번호 조회 후 블록체인 데이터 삽입
+                await injectMissingGames("Game_2", lastValidateId)
+                break
+            case 6: // 누락된 Game_10 오더 번호 조회 후 블록체인 데이터 삽입
+                await injectMissingGames("Game_10", lastValidateId)
+                break
+            case 7: // 누락된 Game_50 오더 번호 조회 후 블록체인 데이터 삽입
+                await injectMissingGames("Game_50", lastValidateId)
+                break
+            case 8: // 누락된 Game_250 오더 번호 조회 후 블록체인 데이터 삽입
+                await injectMissingGames("Game_250", lastValidateId)
+                break
+            default :
+                console.log("잘못된 선택")
+                break
+        }
+
+    } catch (e) {
+        console.log("managementMongoData error: ", e)
+    }
+}
+
+// 
+
 // error log 조회
+
+const test = async () => {
+    console.log("work")
+}
+
+const init = async () => {
+    console.log("관리 기능 함수 실행하려면 y 입력(입력 하기 전에 확인 필수)")
+    rl.on("line", async (line) => {
+        // 한 줄씩 입력받은 후 실행할 코드
+        // 입력된 값은 line에 저장된다.
+        if (line === "y") {
+            await managementMongoData(1, 1) //<--------------------------------- 실행할 함수 삽입
+        } else {
+            console.log("관리 기능 함수 실행x")
+        }
+        rl.close(); // 필수!! close가 없으면 입력을 무한히 받는다.
+    });
+    rl.on('close', () => {
+        // 입력이 끝난 후 실행할 코드
+        console.log("실행 끝")
+        // process.exit();
+    })
+}
+
+module.exports = { init }
+
+// mongoDB에 없는 게임을 조회할 때는 블록체인의 최근 게임 - 1 부터 조회해야함(data injection 층돌이 날 수도 있음)
+
+// 블록체인의 event log에서 최근 게임 id - 1을 조회하는 함수
+/**
+ * 
+ * @param {*} gameKind ex) Game_2
+ */
+const getLastGameidByBlockchain = async (gameKind) => {
+    const networkInfo = {
+        name: CHAIN_NAME,
+        chainId: CHAIN_ID,
+    }
+    try {
+        const mumbaiProvider = new ethers.JsonRpcProvider(INFURA_MUMBAI_URL, networkInfo);
+        const contract = new ethers.Contract(contractInfo[gameKind], contractInfo.abi, mumbaiProvider)
+        const currentGameId = Number(await contract.gameCurrentId())
+        return currentGameId - 1
+    } catch (e) {
+        console.log("getLastGameidByBlockchain error: ", e)
+        return undefined
+    }
+}
+
+/**
+ * 
+ * @param {*} gameKind ex) Game_2
+ */
+const getGameInfoByBlockchain = async (gameKind, gameId) => {
+    const networkInfo = {
+        name: CHAIN_NAME,
+        chainId: CHAIN_ID,
+    }
+    const convertedId = ethers.toBigInt(gameId)
+    try {
+        const mumbaiProvider = new ethers.JsonRpcProvider(INFURA_MUMBAI_URL, networkInfo);
+        const contract = new ethers.Contract(contractInfo[gameKind], contractInfo.implAbi, mumbaiProvider)
+        const gameInfo = await contract.games(convertedId)
+        const players = await contract.getPlayersPerGameId(convertedId)
+        let result = {
+            gameId: gameId,
+            player1: players[0],
+            player2: players[1],
+            player3: players[2],
+            player4: players[3],
+            resultHash: gameInfo[0],
+            winnerSpot: Number(gameInfo[1]),
+            rewardClaimed: gameInfo[2]
+        }
+        return result
+    } catch (e) {
+        console.log("getGameInfoByBlockchain error: ", e)
+        return undefined
+    }
+}
+
+/**
+ * 
+ * @param {*} gameKind - ex) Game_2
+ * @param {*} lastValidateId - 마지막으로 확인할 id
+ */
+const findMissingGameId = async (gameKind, lastValidateId) => {
+    console.log("누락된 id 조회중...")
+    const lastGameId = await getLastGameidByBlockchain(gameKind)
+    if (!lastGameId) {
+        console.log("findMissingGameId error: 블록체인 데이터 조회 오류")
+        return undefined
+    }
+    if (lastValidateId > lastGameId) {
+        console.log("findMissingGameId error: 잘못된 파라미터 입력")
+        return undefined
+    }
+    let searchId = []
+    for (let i=lastGameId; i>=lastValidateId; --i) {
+        searchId.push(i)
+    }
+    let missingIds = []
+    for (let i=0; i<searchId.length; ++i) {
+        const game = await Games[gameKind].findOne({ gameId: searchId[i] })
+        if (!game) {
+            missingIds.push(searchId[i])
+        }
+    }
+    console.log("누락된 id 목록: ", missingIds)
+    return missingIds
+}
+
+/**
+ * 
+ * @param {*} gameKind - ex) Game_2
+ * @param {*} lastValidateId - 마지막으로 확인할 id
+ */
+const injectMissingGames = async (gameKind, lastValidateId) => {
+    const missingIds = await findMissingGameId(gameKind, lastValidateId)
+    if (!missingIds) {
+        return undefined
+    } else if (missingIds.length === 0) {
+        console.log("누락된 id 없음")
+        return undefined
+    }
+    console.log("누락된 id 데이터 주입중...")
+    let gamesFailIds = []
+    let userGameIdFailIds = []
+    for (const val of missingIds) {
+        // game 추가
+        const gameInfo = await getGameInfoByBlockchain(gameKind, val)
+        try {
+            await Games[gameKind].create(gameInfo)
+            console.log(`game id ${val} mongoDB 주입 완료`)
+        } catch (e) {
+            console.log(`game id ${val} mongoDB 주입 실패`)
+            gamesFailIds.push(val)
+        }
+        if (!await injectUserGameId(gameInfo.player1, val, gameKind)) {
+            userGameIdFailIds.push(val)
+        }
+        if (!await injectUserGameId(gameInfo.player2, val, gameKind)) {
+            userGameIdFailIds.push(val)
+        }
+        if (!await injectUserGameId(gameInfo.player3, val, gameKind)) {
+            userGameIdFailIds.push(val)
+        }
+        if (!await injectUserGameId(gameInfo.player4, val, gameKind)) {
+            userGameIdFailIds.push(val)
+        }
+    }
+}
+
+const injectUserGameId = async (address, gameId, gameKind) => {
+    try {
+        const gameIdKey = getGameIdKeyByContractKey(gameKind)
+        const userGameId = await UserGameId.findOne({ address })
+        if (userGameId === null) {
+            const newUserGameId = await UserGameId.create({
+                address
+            })
+            newUserGameId[gameIdKey].push(gameId)
+            await newUserGameId.save()
+        } else {
+            userGameId[gameIdKey].push(gameId)
+            await userGameId.save()
+        }
+        console.log(`${address} user game ids ${gameId} mongoDB 주입 완료`)
+        return true
+    } catch (e) {
+        console.log(`${address} user game ids ${gameId} mongoDB 주입 실패`)
+        return false
+    }
+}

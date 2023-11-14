@@ -19,7 +19,7 @@ const connect = async () => {
     await redisClient.connect();
     console.log("Redis connected");
   } catch (e) {
-    console.error("Error connecting to Redis:", error);
+    console.error("Error connecting to Redis:", e);
   }
 };
 
@@ -128,6 +128,16 @@ const removeDatas = async () => {
   }
 }
 
+// redis 현재 연결되어있는 데이터베이스 내용 모두 삭제
+const removeAllData = async () => {
+  try {
+    await redisClient.flushDb();
+    console.log("All data deleted from Redis");
+  } catch (e) {
+    console.error("Error deleting all data from Redis:", e);
+  }
+}
+
 module.exports = {
   connect,
   close,
@@ -135,7 +145,8 @@ module.exports = {
   getAllGameKeys,
   setData,
   getDatas,
-  removeDatas
+  removeDatas,
+  removeAllData
 };
 
 // const updatedGame = {

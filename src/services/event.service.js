@@ -150,7 +150,7 @@ module.exports = {
     findKeyByAddress,
     updateGamePlayer,
     updateClaimRewardsInfo,
-    insertWinnerInfo,
+    insertWinnerInfo
 }
 
 

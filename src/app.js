@@ -18,24 +18,7 @@ const app = express();
 app.use(helmet());
 
 // setup CORS
-let whitelist = [];
-if (process.env.NODE_ENV === "development") {
-  whitelist = ["http://localhost:3000", process.env.FRONT_ADDRESS];
-} else if (process.env.NODE_ENV === "production") {
-  whitelist = [process.env.FRONT_ADDRESS];
-}
-
-const corsOptions = {
-  credentials: true,
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-};
-app.use(cors(corsOptions));
+app.use(cors({ credentials: true, origin: true }));
 app.options("*", cors());
 
 // body-parsers
