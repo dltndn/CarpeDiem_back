@@ -3,6 +3,7 @@ const { UserGameId, Games } = require("./models")
 const contractInfo = require("./contractInfo")
 const { getGameIdKeyByContractKey } = require("./utils/getDbKey")
 const ethers = require('ethers')
+const { currentProvider } = require('./utils/ethersProvider')
 require("dotenv").config();
 const readline = require("readline");
 
@@ -10,11 +11,6 @@ const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
-
-const INFURA_POLYGON_URL = `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
-const INFURA_MUMBAI_URL = `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`
-const CHAIN_NAME = "Mumbai"
-const CHAIN_ID = 80001
 
 // mongoDB 초기화
 // - 베팅금액별 초기화
@@ -146,13 +142,8 @@ module.exports = { init }
  * @param {*} gameKind ex) Game_2
  */
 const getLastGameidByBlockchain = async (gameKind) => {
-    const networkInfo = {
-        name: CHAIN_NAME,
-        chainId: CHAIN_ID,
-    }
     try {
-        const mumbaiProvider = new ethers.JsonRpcProvider(INFURA_MUMBAI_URL, networkInfo);
-        const contract = new ethers.Contract(contractInfo[gameKind], contractInfo.abi, mumbaiProvider)
+        const contract = new ethers.Contract(contractInfo[gameKind], contractInfo.abi, currentProvider)
         const currentGameId = Number(await contract.gameCurrentId())
         return currentGameId - 1
     } catch (e) {
@@ -166,14 +157,9 @@ const getLastGameidByBlockchain = async (gameKind) => {
  * @param {*} gameKind ex) Game_2
  */
 const getGameInfoByBlockchain = async (gameKind, gameId) => {
-    const networkInfo = {
-        name: CHAIN_NAME,
-        chainId: CHAIN_ID,
-    }
     const convertedId = ethers.toBigInt(gameId)
     try {
-        const mumbaiProvider = new ethers.JsonRpcProvider(INFURA_MUMBAI_URL, networkInfo);
-        const contract = new ethers.Contract(contractInfo[gameKind], contractInfo.implAbi, mumbaiProvider)
+        const contract = new ethers.Contract(contractInfo[gameKind], contractInfo.implAbi, currentProvider)
         const gameInfo = await contract.games(convertedId)
         const players = await contract.getPlayersPerGameId(convertedId)
         let result = {

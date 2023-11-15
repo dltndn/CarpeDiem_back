@@ -1,7 +1,9 @@
 const httpStatus = require("http-status");
-const { gameService, redisService } = require("../services");
+const { gameService, redisService, eventService } = require("../services");
 const getDbKey = require('../utils/getDbKey')
 const ethers = require("ethers");
+const contractInfo = require("../contractInfo");
+const { currentProvider } = require("../utils/ethersProvider");
 
 const test = async (req, res) => {
     const reqData = req.body;
@@ -194,6 +196,50 @@ const getGamesByIds = async (req, res) => {
     res.status(httpStatus.OK).send({ games: mongoGames })
 }
 
+/**
+ * 
+ * @param {*} req - { betAmount: number, gameId: number }
+ * @param {*} res 
+ */
+const updateClaimRewards = async (req, res) => {
+    const reqData = req.body;
+    const { betAmount, gameId } = reqData
+
+    const convertedId = ethers.toBigInt(gameId)
+    const contractAddress = contractInfo[getDbKey.getGamesKeyByBetAmount(betAmount)]
+    
+    
+    // 블록체인의 game 정보에서 승자 지갑 주소와 solidity의 getRewardAmount메서드를 통해 claimRewards 계산 
+    const contract = new ethers.Contract(contractAddress, contractInfo.implAbi, currentProvider)
+    try {
+        const gameInfo = await contract.games(convertedId)
+        // rewardClaimed가 true임을 블록체인에서 확인
+        if (gameInfo[2]) {
+            const winnerSpot = Number(gameInfo[1])
+            const players = await contract.getPlayersPerGameId(convertedId)
+            const rewardAmount = Number(await contract.getRewardAmount())
+            const playerAddress = players[winnerSpot - 1]
+
+            const obj = {
+                contractAddress, gameId, playerAddress, claimRewards: rewardAmount
+            }
+            if (!await eventService.updateClaimRewardsInfo(obj)) {
+                res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+            }
+        } else {
+            console.log("블록체인의 rewardClaimed가 false인데 updateClaimRewards함수가 실행됨")
+            res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+        }
+        
+    } catch (e) {
+        console.log("updateClaimRewards error: ", e)
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    }
+    
+
+    res.status(httpStatus.OK).send()
+}
+
 module.exports = {
     test,
     getTopWinnersMini,
@@ -201,7 +247,8 @@ module.exports = {
     getUserTotalRewards,
     getUserGames,
     getCurrentGames,
-    getGamesByIds
+    getGamesByIds,
+    updateClaimRewards
 }
 
 

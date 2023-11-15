@@ -106,15 +106,16 @@ const updateClaimRewardsInfo = async (obj) => {
             // rewardClaimed 정보 수정
             await game.updateOne({ rewardClaimed: true })
             const userGameId = await UserGameId.findOne({ address: obj.playerAddress })
-            const beforTotalRewards = userGameId.totalRewards
-            if (beforTotalRewards) {
-                await userGameId.updateOne({ totalRewards: beforTotalRewards + obj.claimRewards })
+            const beforeTotalRewards = userGameId.totalRewards
+            if (beforeTotalRewards) {
+                await userGameId.updateOne({ totalRewards: beforeTotalRewards + obj.claimRewards })
             } else {
                 await userGameId.updateOne({ totalRewards: obj.claimRewards })
             }
             await userGameId.save()
         } else {
             console.log("error: Attempted to query for game data via ClaimRewardEvent, but the data is not present in the database.")
+            return false
         }
         return true
     }

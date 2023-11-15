@@ -12,6 +12,7 @@ router.route('/').post(gamesController.test);
 router.route('/topWinnersMini').get(gamesController.getTopWinnersMini)
 router.route('/topWinners').post(isValidUserRefreshToken, gamesController.getTopWinners)
 router.route('/userGames').post(isValidUserRefreshToken, gamesController.getUserGames)
+router.route('/updateRewardClaimed').post(isValidUserRefreshToken, gamesController.updateClaimRewards)
 router.route('/currentGames').post(gamesController.getCurrentGames)
 router.route('/getGamesByIds').post(gamesController.getGamesByIds)
 router.route('/userTotalRewards').post(isValidUserRefreshToken, gamesController.getUserTotalRewards)
