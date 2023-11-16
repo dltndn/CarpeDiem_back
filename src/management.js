@@ -119,7 +119,7 @@ const init = async () => {
         // 한 줄씩 입력받은 후 실행할 코드
         // 입력된 값은 line에 저장된다.
         if (line === "y") {
-            await managementMongoData(1, 1) //<--------------------------------- 실행할 함수 삽입
+            await test() //<--------------------------------- 실행할 함수 삽입
         } else {
             console.log("관리 기능 함수 실행x")
         }
