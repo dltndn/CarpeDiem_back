@@ -1,7 +1,6 @@
 const express = require("express");
 require("express-async-errors");
 const helmet = require("helmet");
-const cors = require("cors");
 const mongoSanitize = require("express-mongo-sanitize");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
@@ -16,10 +15,6 @@ const app = express();
 
 // set security HTTP headers
 app.use(helmet());
-
-// setup CORS
-app.use(cors({ credentials: true, origin: true }));
-app.options("*", cors());
 
 // body-parsers
 app.use(express.json());
