@@ -20,8 +20,9 @@ app.set('trust proxy', true);
 // set security HTTP headers
 app.use(helmet());
 
-const corsOptions_wh = { credentials: true, origin: '*' };
-app.use(cors(corsOptions_wh))
+// setup CORS
+app.use(cors({ credentials: true, origin: true }));
+app.options('*', cors());
 
 // body-parsers
 app.use(express.json());
