@@ -2,6 +2,7 @@ const express = require("express");
 require("express-async-errors");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
+const cors = require("cors")
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const passport = require("passport");
@@ -18,6 +19,9 @@ app.set('trust proxy', true);
 
 // set security HTTP headers
 app.use(helmet());
+
+const corsOptions_wh = { credentials: true, origin: '*' };
+app.use(cors(corsOptions_wh))
 
 // body-parsers
 app.use(express.json());
