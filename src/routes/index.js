@@ -4,7 +4,7 @@ const userRoute = require('./user.route');
 const gamesRoute = require('./games.route');
 const webhookRoute = require('./webhook.route');
 
-const { limiter } = require('../middlewares/limiter')
+// const { limiter } = require('../middlewares/limiter')
 
 // let whitelist = [];
 // if (process.env.NODE_ENV === "development") {
@@ -47,7 +47,7 @@ defaultRoutes.forEach((route) => {
   if (route.path === '/webhook') {
     router.use(route.path, route.route);
   } else {
-    router.use(route.path, limiter, route.route);
+    router.use(route.path, route.route);
   }
 });
 
