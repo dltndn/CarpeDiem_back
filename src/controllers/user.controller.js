@@ -43,6 +43,8 @@ const verifySignature = async (req, res) => {
         });
         const refreshToken = createRefreshToken(userId);
 
+        res.header('Access-Control-Allow-Credentials', true);
+
         // client의 쿠키에 보관
         res.cookie("accessToken", accessToken, accessTokenCookieOptions);
         res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
@@ -64,6 +66,7 @@ const verifySignature = async (req, res) => {
 };
 
 const logout = async (_, res) => {
+  res.header('Access-Control-Allow-Credentials', true);
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
   res.status(httpStatus.OK).send();
@@ -83,6 +86,8 @@ const updateAccessToken = async (req, res) => {
 
       const accessToken = createAccessToken(userId, { address: user?.address });
       const refreshToken = createRefreshToken(userId);
+
+      res.header('Access-Control-Allow-Credentials', true);
 
       // client의 쿠키에 보관
       res.cookie("accessToken", accessToken, accessTokenCookieOptions);
