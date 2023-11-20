@@ -16,6 +16,7 @@ if (process.env.NODE_ENV === "development") {
 const corsOptions = {
   credentials: true,
   origin: function (origin, callback) {
+    console.log("origin: ", origin)
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -26,7 +27,7 @@ const corsOptions = {
 const corsOptions_wh = { credentials: true, origin: '*' };
 
 
-const router = express.Router();
+const router = express.Router(); 
 
 const defaultRoutes = [
   {
@@ -47,7 +48,7 @@ defaultRoutes.forEach((route) => {
   if (route.path === '/webhook') {
     router.use(route.path, cors(corsOptions_wh), route.route);
   } else {
-    router.use(route.path, limiter, cors(corsOptions), route.route);
+    router.use(route.path, limiter, cors(corsOptions_wh), route.route);
   }
 });
 
