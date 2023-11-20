@@ -21,6 +21,7 @@ const validateStreamId = (id) => {
   if (!isAuth) {
     console.log("Unauthorized stream id");
     console.log("Recieved: ", id);
+    return false
   }
   return isAuth;
 };
@@ -44,7 +45,8 @@ const getBetEvent = async (req, res) => {
   const { confirmed, streamId, logs } = webhookData;
 
   if (!validateStreamId(streamId)) {
-    res.status(httpStatus.UNAUTHORIZED).send();
+    // res.status(httpStatus.UNAUTHORIZED).send();
+    return res.status(httpStatus.OK).send()
   }
 
   if (!confirmed) {
@@ -87,7 +89,8 @@ const getEfpEvent = async (req, res) => {
   const { confirmed, streamId, logs } = webhookData;
 
   if (!validateStreamId(streamId)) {
-    res.status(httpStatus.UNAUTHORIZED).send();
+    // res.status(httpStatus.UNAUTHORIZED).send();
+    return res.status(httpStatus.OK).send()
   }
 
   if (!confirmed) {
@@ -159,7 +162,8 @@ const getCliaimRewardEvent = async (req, res) => {
     const { confirmed, streamId, logs } = webhookData;
 
     if (!validateStreamId(streamId)) {
-        res.status(httpStatus.UNAUTHORIZED).send();
+      // res.status(httpStatus.UNAUTHORIZED).send();
+      return res.status(httpStatus.OK).send()
     }
     
     if (!confirmed) {
