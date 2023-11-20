@@ -90,7 +90,7 @@ const updateAccessToken = async (req, res) => {
       const refreshToken = createRefreshToken(userId);
 
       res.header('Access-Control-Allow-Credentials', true);
-      res.header('Access-Control-Allow-Origin', process.env.FRONT_ADDRESS);
+      res.header('Access-Control-Allow-Origin', '*');
 
       // client의 쿠키에 보관
       res.cookie("accessToken", accessToken, accessTokenCookieOptions);
