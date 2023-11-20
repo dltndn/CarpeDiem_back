@@ -5,6 +5,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const passport = require("passport");
+const cors = require('cors'); 
 const routes = require("./routes");
 const {
   notFoundErrorHandler,
@@ -18,6 +19,10 @@ app.set('trust proxy', true);
 
 // set security HTTP headers
 app.use(helmet());
+
+// setup CORS
+app.use(cors({ credentials: true, origin: true }));
+app.options('*', cors());
 
 // body-parsers
 app.use(express.json());
