@@ -69,8 +69,8 @@ const verifySignature = async (req, res) => {
 const logout = async (_, res) => {
   res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Origin', process.env.FRONT_ADDRESS);
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  res.clearCookie("accessToken", accessTokenCookieOptions);
+  res.clearCookie("refreshToken", refreshTokenCookieOptions);
   res.status(httpStatus.OK).send();
 };
 
