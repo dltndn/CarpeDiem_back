@@ -15,9 +15,11 @@ const createUser = async (address) => {
 }
 
 const createMsg = (nonce) => `
-  Welcome to Mini Lottery!
+  Welcome to Hash Draw!
 
   Approve this message to securely log in.
+  This request will not trigger a blockchain transaction
+  or cost any gas fees.
 
   Nonce:
   ${JSON.stringify(nonce)}`;

@@ -138,6 +138,7 @@ const getCurrentGames = async (req, res) => {
     // getGames by redis or mongoDB
     // redis에서 game들 가져오기
     const redisDatas = await redisService.getDatas(getDbKey.getGamesKeyByBetAmount(obj.betAmount), obj.amount, obj.seqNum)
+    console.log(redisDatas)
     if (!redisDatas) {
         res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
     }
