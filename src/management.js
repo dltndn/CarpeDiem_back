@@ -4,7 +4,6 @@ const contractInfo = require("./contractInfo")
 const { getGameIdKeyByContractKey } = require("./utils/getDbKey")
 const ethers = require('ethers')
 const { currentProvider } = require('./utils/ethersProvider')
-require("dotenv").config();
 const readline = require("readline");
 
 const rl = readline.createInterface({
