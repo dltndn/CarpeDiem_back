@@ -45,8 +45,8 @@ const getBetEvent = async (req, res) => {
   const { confirmed, streamId, logs } = webhookData;
 
   if (!validateStreamId(streamId)) {
-    // return res.status(httpStatus.UNAUTHORIZED).send();
-    return res.status(httpStatus.OK).send()
+    return res.status(httpStatus.UNAUTHORIZED).send();
+    // return res.status(httpStatus.OK).send()
   }
 
   if (!confirmed) {
@@ -89,8 +89,8 @@ const getEfpEvent = async (req, res) => {
   const { confirmed, streamId, logs } = webhookData;
 
   if (!validateStreamId(streamId)) {
-    // return res.status(httpStatus.UNAUTHORIZED).send();
-    return res.status(httpStatus.OK).send()
+    return res.status(httpStatus.UNAUTHORIZED).send();
+    // return res.status(httpStatus.OK).send()
   }
 
   if (!confirmed) {
@@ -162,8 +162,8 @@ const getCliaimRewardEvent = async (req, res) => {
     const { confirmed, streamId, logs } = webhookData;
 
     if (!validateStreamId(streamId)) {
-      // return res.status(httpStatus.UNAUTHORIZED).send();
-      return res.status(httpStatus.OK).send()
+      return res.status(httpStatus.UNAUTHORIZED).send();
+      // return res.status(httpStatus.OK).send()
     }
     
     if (!confirmed) {

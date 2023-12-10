@@ -3,13 +3,13 @@ const app = require('./app');
 const { dbService, redisService } = require("./services");
 const { init } = require("./management")
 
-const envPath = process.env.NODE_ENV === 'production' ? '/etc/secrets/.env' : '.env'
-require("dotenv").config({ path: envPath });
+// const envPath = process.env.NODE_ENV === 'development' ? '.env' : '/etc/secrets/.env'
+// require("dotenv").config({ path: envPath });
 
 const server = app.listen(process.env.PORT, async () => {
   console.log(`Listening to port ${process.env.PORT}`);
   await dbService.connect();
-  await redisService.connect()
+  // await redisService.connect()
   console.log(`Connected!`);
   if (process.env.NODE_ENV === "development") {
     await init()

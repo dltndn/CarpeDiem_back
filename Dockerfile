@@ -15,10 +15,10 @@ COPY . .
 RUN npm ci \
     && npm install -g pm2 
 # Use secret .env file and print its content
-RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env cat /etc/secrets/.env
+# RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env cat /etc/secrets/.env
 
 # Expose the port that the application listens on.
-EXPOSE 8080
+EXPOSE 6379
 
 # Run the application.
-CMD npm start
+CMD ["npm", "start"]
