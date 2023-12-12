@@ -9,7 +9,7 @@ const router = express.Router();
 router.route('/login').post(validate(userValidation.loginUser), userController.login);
 router.route('/verify').post(validate(userValidation.verifySignature), userController.verifySignature);
 router.route('/logout').post(userController.logout);
-router.route('/validAccessToken').post(isUserAuthenticated, userController.updateAccessToken)
+router.route('/validRefreshToken').get(isValidUserRefreshToken, userController.verifyRefreshToken)
 router.route('/updateAccessToken').post(isValidUserRefreshToken, userController.updateAccessToken);
 // router.route('/').get(userController.getUsers);
 

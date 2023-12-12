@@ -103,10 +103,15 @@ const updateAccessToken = async (req, res) => {
   }
 };
 
+const verifyRefreshToken = (_, res) => {
+  res.status(httpStatus.OK).send({ isVerified: true })
+}
+
 module.exports = {
   login,
   verifySignature,
   logout,
   getUsers,
   updateAccessToken,
+  verifyRefreshToken
 };
