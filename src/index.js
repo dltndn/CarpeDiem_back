@@ -9,7 +9,7 @@ const { init } = require("./management")
 const server = app.listen(process.env.PORT, async () => {
   console.log(`Listening to port ${process.env.PORT}`);
   await dbService.connect();
-  // await redisService.connect()
+  await redisService.connect()
   console.log(`Connected!`);
   if (process.env.NODE_ENV === "development") {
     await init()
