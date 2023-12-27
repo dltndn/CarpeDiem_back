@@ -89,6 +89,7 @@ const getDatas = async (gameType, amount, seqNum) => {
       return []
     }
     let parseArr = []
+    // score에 해당하는 게임 정보가 실제 있는지 확인
     for (const val of result) {
       const data = JSON.parse(val)
       if (data) {
