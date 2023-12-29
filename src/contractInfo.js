@@ -78,9 +78,9 @@ module.exports = {
           },
           {
             "indexed": true,
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "indexed": true,
@@ -279,9 +279,9 @@ module.exports = {
         "name": "calculateWinningResults",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -329,9 +329,9 @@ module.exports = {
         "name": "games",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -418,6 +418,11 @@ module.exports = {
           {
             "internalType": "uint256",
             "name": "_betAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_managementFee",
             "type": "uint256"
           }
         ],
@@ -695,9 +700,9 @@ module.exports = {
           },
           {
             "indexed": true,
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "indexed": true,
@@ -914,9 +919,9 @@ module.exports = {
         "name": "calculateWinningResults",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -988,9 +993,9 @@ module.exports = {
         "name": "games",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -1109,6 +1114,11 @@ module.exports = {
           {
             "internalType": "uint256",
             "name": "_betAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_managementFee",
             "type": "uint256"
           }
         ],
