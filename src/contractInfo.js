@@ -1,5 +1,5 @@
 module.exports = {
-    Game_2: "0x36a99388ee9AB8c9b6DbDFf12A46926baBC1F0d1",
+    Game_2: "0x8e34f9bA01F173A0Cf17A47BbA2Ec285Df455A75",
     Game_10: "0x3424",
     Game_50: "0x4043",
     Game_250: "0x1991",

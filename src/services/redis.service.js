@@ -132,7 +132,7 @@ const removeDatas = async () => {
 const removeAllData = async () => {
   try {
     await redisClient.flushDb();
-    console.log("All data deleted from Redis");
+    console.log("All data is deleted from Redis");
   } catch (e) {
     console.error("Error deleting all data from Redis:", e);
   }

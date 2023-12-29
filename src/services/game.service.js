@@ -28,6 +28,9 @@ const getUserGameIdsByMongo = async (obj) => {
     try {
         // mongoDB에서 플레이어 게임id 배열 가져오기 
         const dbGameIds = await UserGameId.findOne({ address: obj.playerAddress }, gameIdKey).exec()
+        if (!dbGameIds) {
+            return []
+        }
         const gameIdArr = getArrayElements(dbGameIds[gameIdKey], obj.amount, obj.seqNum)
         if (gameIdArr.length === 0) {
             return []

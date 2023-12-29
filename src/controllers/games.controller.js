@@ -149,16 +149,34 @@ const getCurrentGames = async (req, res) => {
         const lastGameId = redisDatas[0].gameId + 1
         const games = [...redisDatas]
         res.status(httpStatus.OK).send({ games, lastGameId })
-    } else if (dataAmountForMongo === obj.amount) {
+    } else if (dataAmountForMongo > 0) {
         // redis에 모든 타겟 정보가 없거나 일부만 있을 때
         // mongoDB에서 최신순으로 2번째 데이터부터
-        const { gameIds, lastGameId } = await gameService.getGameIdsByMongo(obj)
-        const mongoGames = await gameService.getGamesByMongo(obj.betAmount, gameIds)
+        const mongoData = await gameService.getGameIdsByMongo(obj)
+        if (mongoData === undefined) {
+            res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+        }
+        const mongoGames = await gameService.getGamesByMongo(obj.betAmount, mongoData.gameIds)
         if (mongoGames === undefined) {
             res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
         }
-        res.status(httpStatus.OK).send({ games: mongoGames, lastGameId })
-    } 
+        res.status(httpStatus.OK).send({ games: mongoGames, lastGameId: mongoData.lastGameId })
+    } else {
+        es.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    }
+    // else if (dataAmountForMongo === obj.amount) {
+    //     // redis에 모든 타겟 정보가 없을 때
+    //     // mongoDB에서 최신순으로 2번째 데이터부터
+    //     const mongoData = await gameService.getGameIdsByMongo(obj)
+    //     if (mongoData === undefined) {
+    //         res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    //     }
+    //     const mongoGames = await gameService.getGamesByMongo(obj.betAmount, mongoData.gameIds)
+    //     if (mongoGames === undefined) {
+    //         res.status(httpStatus.INTERNAL_SERVER_ERROR).send()
+    //     }
+    //     res.status(httpStatus.OK).send({ games: mongoGames, lastGameId: mongoData.lastGameId })
+    // }
     // else {
     //     // redis에 일부 타겟 정보만 있을 때
     //     const lastGameId = redisDatas[0].gameId + 1

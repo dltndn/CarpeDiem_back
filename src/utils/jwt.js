@@ -24,7 +24,7 @@ const refreshTokenCookieOptions = {
   signed: true,
   httpOnly: true,
   path: '/',
-  sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'Lax',
 };
 
 const accessTokenCookieOptions = {
@@ -32,15 +32,15 @@ const accessTokenCookieOptions = {
   signed: true,
   httpOnly: true,
   path: '/',
-  sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'Lax',
 };
 
 if (process.env.NODE_ENV === 'development') {
   refreshTokenCookieOptions.domain = 'localhost';
   accessTokenCookieOptions.domain = 'localhost';
 } else if (process.env.NODE_ENV === 'production') {
-  refreshTokenCookieOptions.domain = process.env.FRONT_DOMAIN;
-  accessTokenCookieOptions.domain = process.env.FRONT_DOMAIN;
+  refreshTokenCookieOptions.domain = process.env.SERVER_DOMAIN;
+  accessTokenCookieOptions.domain = process.env.SERVER_DOMAIN;
 }
 
 module.exports = {

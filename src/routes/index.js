@@ -4,6 +4,7 @@ const gamesRoute = require('./games.route');
 const webhookRoute = require('./webhook.route');
 
 const { limiter } = require('../middlewares/limiter')
+const { increaseRoute } = require('../middlewares/management')
 
 // let whitelist = [];
 // if (process.env.NODE_ENV === "development") {
@@ -25,7 +26,6 @@ const { limiter } = require('../middlewares/limiter')
 // };
 // const corsOptions_wh = { credentials: true, origin: '*' };
 
-
 const router = express.Router(); 
 
 const defaultRoutes = [
@@ -45,9 +45,9 @@ const defaultRoutes = [
 
 defaultRoutes.forEach((route) => {
   if (route.path === '/webhook') {
-    router.use(route.path, route.route);
+    router.use(route.path, increaseRoute, route.route);
   } else {
-    router.use(route.path, limiter, route.route);
+    router.use(route.path, limiter, increaseRoute, route.route);
   }
 });
 

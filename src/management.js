@@ -4,7 +4,6 @@ const contractInfo = require("./contractInfo")
 const { getGameIdKeyByContractKey } = require("./utils/getDbKey")
 const ethers = require('ethers')
 const { currentProvider } = require('./utils/ethersProvider')
-require("dotenv").config();
 const readline = require("readline");
 
 const rl = readline.createInterface({
@@ -57,8 +56,26 @@ const removeMongoData = async (num) => {
 }
 
 // redis 초기화
-const removeRedisData = async () => {
-    await redisService.removeAllData()
+const manageRedisData = async (num) => {
+    try {
+        switch (num) {
+            case 1: // redis data 전부 삭제
+                await redisService.removeAllData()
+                break 
+            case 2: // redis key 전부 불러오기
+                const keys = await redisService.getAllGameKeys()
+                for (const val of keys) {
+                    console.log(val)
+                }
+                break
+            default :
+                console.log("잘못된 선택")
+                break
+        }
+    } catch (e) {
+        console.log("manageRedisData error: ", e)
+    }
+    
   };
   
 
