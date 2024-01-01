@@ -1,4 +1,5 @@
-const { ManagementDb } = require('../models')
+const { ManagementDb, Games } = require('../models')
+const { gameService } = require('../services')
 const ethers = require('ethers')
 const { currentProvider } = require('../utils/ethersProvider')
 const { Game_2, implAbi } = require('../contractInfo')
@@ -92,7 +93,67 @@ const autoTest = async (index) => {
     return true
 }
 
-module.exports = {
-    autoTest
+/**
+ * @description gameId 범위 내 가상 유저가 상금을 수거하는 함수
+ * 1. 범위 내 claim여부가 false이면 winner의 계정 주소로 가상 계정 DB에서 privatKey를 추출
+ * 2. gameId, 가상 계정 프라이빗키, 퍼블릭키 객체를 배열 형태로 저장
+ * 3. 가상 유저별 블록체인 클레임 함수 실행
+ * @param {*} startNum - 탐색할 gameId 시작 번호
+ * @param {*} endNum - 탐색할 gameId 끝 번호
+ */
+const autoClaim = async (startNum, endNum) => {
+    let vaInfoArr = []
+    // 1. 범위 내 claim여부가 false이면 winner의 계정 주소로 가상 계정 DB에서 privatKey를 추출
+    let targetIdArr = []
+    for (let i=startNum; i<=endNum; ++i) {
+        targetIdArr.push(i)
+    }
+    // 게임 데이터 불러오기
+    const gameDataArr = await gameService.getGamesByMongo(2, targetIdArr)
+    for (const val of gameDataArr) {
+        if (val.winnerSpot !== undefined && val.rewardClaimed === false) {
+            // 퍼블릭 키로 tempAccountsDB에서 프라이빗 키 추출
+            const accountData = await ManagementDb.TempAccountDb.find({ publicKey: getWinnerAddress(val) })
+            if (accountData) {
+                const data = accountData[0]
+                // 2. gameId, 가상 계정 프라이빗키, 퍼블릭키 객체를 배열 형태로 저장
+                const accObj = { gameId: val.gameId, publicKey: data.publicKey, privateKey: data.privateKey }
+                vaInfoArr.push(accObj)
+            }
+        }
+    }
+
+    // 3. 가상 유저별 블록체인 클레임 함수 실행
+    for (const val of vaInfoArr.reverse()) {
+        const tempWallet = new ethers.Wallet(val.privateKey, currentProvider)
+        const contract = new ethers.Contract(Game_2, implAbi, tempWallet)
+        try {
+            const tx_claimReward = await contract.claimReward(val.gameId)
+            await tx_claimReward.wait()
+            console.log(`gameId: ${val.gameId} claimReward 함수 실행 완료`)
+        } catch (e) {
+            console.log(`gameId: ${val.gameId} claimReward 함수 실행 실패`)
+            console.log(e)
+        }
+    }
 }
 
+module.exports = {
+    autoTest,
+    autoClaim
+}
+
+const getWinnerAddress = (val) => {
+    switch (val.winnerSpot) {
+        case 1:
+            return val.player1
+        case 2:
+            return val.player2
+        case 3:
+            return val.player3
+        case 4:
+            return val.player4
+        default :
+            return undefined
+    }
+}
