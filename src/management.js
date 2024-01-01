@@ -137,7 +137,7 @@ const init = async () => {
         // 한 줄씩 입력받은 후 실행할 코드
         // 입력된 값은 line에 저장된다.
         if (line === "y") {
-            await autoClaim(6, 15) //<--------------------------------- 실행할 함수 삽입
+            await autoUserRepeat(10) //<--------------------------------- 실행할 함수 삽입
         } else {
             console.log("관리 기능 함수 실행x")
         }
@@ -175,6 +175,17 @@ const autoUser = async (num) => {
 const autoClaim = async (startNum, endNum) => {
     await managemetController.autoClaim(startNum, endNum)
     console.log("자동 클레임 완료")
+}
+
+// 이전에 참여했던 가상 유저를 게임에 참여시키는 코드
+/**
+ * @param num 랜덤 유저 수
+ */
+const autoUserRepeat = async (num) => {
+    if (num > 0) {
+        const successAmount = await managemetController.autoUserRepeat(num)
+    }
+    console.log(`autoUserRepeat 함수 가상 계정${num}개중 ${successAmount}개 완료`)
 }
 
 // mongoDB에 없는 게임을 조회할 때는 블록체인의 최근 게임 - 1 부터 조회해야함(data injection 층돌이 날 수도 있음)

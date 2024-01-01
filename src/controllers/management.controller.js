@@ -138,9 +138,57 @@ const autoClaim = async (startNum, endNum) => {
     }
 }
 
+/**
+ * @description 가상 유저들 베팅 함수 수행하는 프로세스
+ * @param {*} num - 랜덤 유저 수
+ */
+const autoUserRepeat = async (num) => {
+    let successAmount = 0
+
+    const docs = await ManagementDb.TempAccountDb.aggregate([
+        { $sample: { size: num } }
+    ]).exec();
+    
+    const masterWallet = new ethers.Wallet(MASTER_PRIVATE, currentProvider)
+    for (const val of docs) {
+        // 3. 마스터 계정으로부터 0.0018matic 수령
+        const masterBalance = ethers.formatEther(await currentProvider.getBalance(masterWallet.address))
+        if (Number(masterBalance) > 0.0014) {
+            const amount = ethers.parseEther(String(0.0014))
+            try {
+                const tx_sendTransaction = await masterWallet.sendTransaction({
+                    to: val.publicKey,
+                    value: amount
+                })
+                await tx_sendTransaction.wait()
+            } catch (e) {
+                console.log('master계정 matic 전송 실패')
+                return false
+            }
+        } else {
+            console.log("master 계정 잔액 부족")
+            return false
+        }
+        try {
+            const tempWallet = new ethers.Wallet(val.privateKey, currentProvider)
+            const contract = new ethers.Contract(Game_2, implAbi, tempWallet)
+            const betAmount = ethers.parseEther(String(BET_AMOUNT))
+            const tx_bet = await contract.bet({ value: betAmount })
+            await tx_bet.wait()
+            console.log(`${val.publicKey} - bet 함수 실행 완료`)
+            successAmount += 1
+        } catch (e) {
+            console.log(`${val.publicKey} - bet 함수 실행 실패`)
+            console.log(e)
+        }
+    }
+    return successAmount
+}
+
 module.exports = {
     autoTest,
-    autoClaim
+    autoClaim,
+    autoUserRepeat
 }
 
 const getWinnerAddress = (val) => {
