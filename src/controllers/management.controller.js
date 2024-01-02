@@ -65,12 +65,8 @@ const autoTest = async (index) => {
     }
 
     // 4. 0.001게임 베팅키 등록
-    const tempWallet = new ethers.Wallet(privateKey, currentProvider)
-    const contract = new ethers.Contract(Game_2, implAbi, tempWallet)
     try {
-        const randomKey = Math.floor(Math.random() * 255) + 1;
-        const tx_setBettingKey = await contract.setBettingKey(randomKey);
-        await tx_setBettingKey.wait();
+        await setBettingKey_tx(privateKey)
         console.log('setBettingKey 함수 실행 완료');
     } catch (e) {
         console.log('setBettingKey 함수 실패');
@@ -79,9 +75,7 @@ const autoTest = async (index) => {
 
     // 5. 0.001게임 베팅 진행
     try {
-        const betAmount = ethers.parseEther(String(BET_AMOUNT))
-        const tx_bet = await contract.bet({ value: betAmount })
-        await tx_bet.wait()
+        await bet_tx(privateKey)
         console.log('bet 함수 실행 완료')
     } catch (e) {
         console.log('bet 함수 실패');
@@ -170,16 +164,22 @@ const autoUserRepeat = async (num) => {
             return false
         }
         try {
-            const tempWallet = new ethers.Wallet(val.privateKey, currentProvider)
-            const contract = new ethers.Contract(Game_2, implAbi, tempWallet)
-            const betAmount = ethers.parseEther(String(BET_AMOUNT))
-            const tx_bet = await contract.bet({ value: betAmount })
-            await tx_bet.wait()
+            await bet_tx(val.privateKey)
             console.log(`${val.publicKey} - bet 함수 실행 완료`)
             successAmount += 1
         } catch (e) {
             console.log(`${val.publicKey} - bet 함수 실행 실패`)
-            console.log(e)
+            if (e['reason'] === "bettingKey is empty.") {
+                try {
+                    await setBettingKey_tx(val.privateKey)
+                    console.log(`${val.publicKey} - setBettingKey 함수 실행 완료`)
+                    await bet_tx(val.privateKey)
+                    console.log(`${val.publicKey} - bet 함수 재실행 완료`)
+                    successAmount += 1
+                } catch (e) {
+                    console.log(`${val.publicKey} - 함수 재실행 실패`)
+                }
+            }
         }
     }
     return successAmount
@@ -204,4 +204,22 @@ const getWinnerAddress = (val) => {
         default :
             return undefined
     }
+}
+
+// 가상 계정 privateKey를 통해 bettingKey를 세팅하는 함수
+const setBettingKey_tx = async (privateKey) => {
+    const tempWallet = new ethers.Wallet(privateKey, currentProvider)
+    const contract = new ethers.Contract(Game_2, implAbi, tempWallet)
+    const randomKey = Math.floor(Math.random() * 255) + 1;
+    const tx_setBettingKey = await contract.setBettingKey(randomKey);
+    await tx_setBettingKey.wait();
+}
+
+// 가상 계정 privateKey를 통해 베팅하는 함수
+const bet_tx = async (privateKey) => {
+    const tempWallet = new ethers.Wallet(privateKey, currentProvider)
+    const contract = new ethers.Contract(Game_2, implAbi, tempWallet)
+    const betAmount = ethers.parseEther(String(BET_AMOUNT))
+    const tx_bet = await contract.bet({ value: betAmount })
+    await tx_bet.wait()
 }

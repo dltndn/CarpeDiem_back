@@ -137,7 +137,7 @@ const init = async () => {
         // 한 줄씩 입력받은 후 실행할 코드
         // 입력된 값은 line에 저장된다.
         if (line === "y") {
-            await autoUserRepeat(10) //<--------------------------------- 실행할 함수 삽입
+            await test() //<--------------------------------- 실행할 함수 삽입
         } else {
             console.log("관리 기능 함수 실행x")
         }
@@ -182,8 +182,9 @@ const autoClaim = async (startNum, endNum) => {
  * @param num 랜덤 유저 수
  */
 const autoUserRepeat = async (num) => {
+    let successAmount
     if (num > 0) {
-        const successAmount = await managemetController.autoUserRepeat(num)
+        successAmount = await managemetController.autoUserRepeat(num)
     }
     console.log(`autoUserRepeat 함수 가상 계정${num}개중 ${successAmount}개 완료`)
 }
