@@ -5,7 +5,7 @@ const { currentProvider } = require('../utils/ethersProvider')
 const { Game_2, implAbi } = require('../contractInfo')
 
 const MASTER_ADDRESS = '0xd397AEc78be7fC14ADE2D2b5F03232b04A7AB42E'
-const MASTER_PRIVATE = 'b135ddf618b9a10872ca0407b6d1fd7d4e9eb881588c4491d949a43eb44dba65'
+const MASTER_PRIVATE = process.env.MASTER_PRIVATE
 const QUOTA = 0.0018
 const BET_AMOUNT = 0.001
 
