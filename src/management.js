@@ -1,4 +1,5 @@
 const { dbService, redisService, gameService, eventService } = require("./services");
+const { managemetController } = require("../src/controllers/index")
 const { UserGameId, Games } = require("./models")
 const contractInfo = require("./contractInfo")
 const { getGameIdKeyByContractKey } = require("./utils/getDbKey")
@@ -151,6 +152,43 @@ const init = async () => {
 
 module.exports = { init }
 
+// 가상 유저 생성 후 게임에 참여시키는 코드
+/**
+ * @param num 반복 횟수
+ */
+const autoUser = async (num) => {
+    if (num > 0) {
+        for (let i=0; i<num; ++i) {
+            const result = await managemetController.autoTest(i)
+            if (!result) {
+                return
+            }
+        }
+    }
+    console.log(`autoTest 함수 ${num}회 완료`)
+}
+
+// 가상 유저 claimReward 함수 실행 코드
+/**
+ * @param 
+ */
+const autoClaim = async (startNum, endNum) => {
+    await managemetController.autoClaim(startNum, endNum)
+    console.log("자동 클레임 완료")
+}
+
+// 이전에 참여했던 가상 유저를 게임에 참여시키는 코드
+/**
+ * @param num 랜덤 유저 수
+ */
+const autoUserRepeat = async (num) => {
+    let successAmount
+    if (num > 0) {
+        successAmount = await managemetController.autoUserRepeat(num)
+    }
+    console.log(`autoUserRepeat 함수 가상 계정${num}개중 ${successAmount}개 완료`)
+}
+
 // mongoDB에 없는 게임을 조회할 때는 블록체인의 최근 게임 - 1 부터 조회해야함(data injection 층돌이 날 수도 있음)
 
 // 블록체인의 event log에서 최근 게임 id - 1을 조회하는 함수
@@ -218,9 +256,18 @@ const findMissingGameId = async (gameKind, lastValidateId) => {
     }
     let missingIds = []
     for (let i=0; i<searchId.length; ++i) {
-        const game = await Games[gameKind].findOne({ gameId: searchId[i] })
+        const game = await Games[gameKind].findOne({ gameId: searchId[i] }).exec()
         if (!game) {
             missingIds.push(searchId[i])
+        } else {
+            if (game.player4) {
+                continue
+            } else {
+                if (!game.player4 || !game.player3 || !game.player2) {
+                    missingIds.push(searchId[i])
+                    await Games[gameKind].deleteOne({ gameId: searchId[i] })
+                }
+            }
         }
     }
     console.log("누락된 id 목록: ", missingIds)
@@ -247,24 +294,28 @@ const injectMissingGames = async (gameKind, lastValidateId) => {
         // game 추가
         const gameInfo = await getGameInfoByBlockchain(gameKind, val)
         try {
+            // db에 있으면 삭제
             await Games[gameKind].create(gameInfo)
+            if (!await injectUserGameId(gameInfo.player1, val, gameKind)) {
+                userGameIdFailIds.push(val)
+            }
+            if (!await injectUserGameId(gameInfo.player2, val, gameKind)) {
+                userGameIdFailIds.push(val)
+            }
+            if (!await injectUserGameId(gameInfo.player3, val, gameKind)) {
+                userGameIdFailIds.push(val)
+            }
+            if (!await injectUserGameId(gameInfo.player4, val, gameKind)) {
+                userGameIdFailIds.push(val)
+            }
             console.log(`game id ${val} mongoDB 주입 완료`)
         } catch (e) {
             console.log(`game id ${val} mongoDB 주입 실패`)
             gamesFailIds.push(val)
         }
-        if (!await injectUserGameId(gameInfo.player1, val, gameKind)) {
-            userGameIdFailIds.push(val)
-        }
-        if (!await injectUserGameId(gameInfo.player2, val, gameKind)) {
-            userGameIdFailIds.push(val)
-        }
-        if (!await injectUserGameId(gameInfo.player3, val, gameKind)) {
-            userGameIdFailIds.push(val)
-        }
-        if (!await injectUserGameId(gameInfo.player4, val, gameKind)) {
-            userGameIdFailIds.push(val)
-        }
+    }
+    if (gamesFailIds.length !== 0) {
+        console.log(`주입 실패 id: ${gamesFailIds}`)
     }
 }
 

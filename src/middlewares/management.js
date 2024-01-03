@@ -9,7 +9,7 @@ const increaseRoute = async (req, _, next) => {
     const options = { upsert: true, new: true }; // 문서가 없으면 새로 만들고, 업데이트된 문서를 반환
 
     try {
-        await ManagementDb.findOneAndUpdate(filter, update, options);
+        await ManagementDb.ManagementDb.findOneAndUpdate(filter, update, options);
     } catch (e) {
         console.log('miiddlewares/management increaseRoute error: ', e)
     }

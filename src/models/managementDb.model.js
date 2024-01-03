@@ -19,6 +19,17 @@ const managementSchema = new mongoose.Schema(
     claimRewardEvent: { type: Number }
   });
 
-const ManagementDb = mongoose.model('Management', managementSchema);
+const tempAccountSchema = new mongoose.Schema(
+  {
+    publicKey: { type: String },
+    privateKey: { type: String }
+  }
+);
 
-module.exports = ManagementDb;
+const ManagementDb = mongoose.model('Management', managementSchema);
+const TempAccountDb = mongoose.model('TempAccount', tempAccountSchema)
+
+module.exports = {
+  ManagementDb,
+  TempAccountDb
+};

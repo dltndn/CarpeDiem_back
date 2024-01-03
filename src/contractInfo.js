@@ -1,8 +1,14 @@
 module.exports = {
     Game_2: "0x8e34f9bA01F173A0Cf17A47BbA2Ec285Df455A75",
+<<<<<<< HEAD
     Game_10: "0x3424",
     Game_50: "0x4043",
     Game_250: "0x1991",
+=======
+    Game_10: "0x8e34f9bA01F173A0Cf17A47BbA2Ec285Df455A75",
+    Game_50: "0x8e34f9bA01F173A0Cf17A47BbA2Ec285Df455A75",
+    Game_250: "0x8e34f9bA01F173A0Cf17A47BbA2Ec285Df455A75",
+>>>>>>> autoTest
     abi: [
       {
         "anonymous": false,
@@ -78,9 +84,9 @@ module.exports = {
           },
           {
             "indexed": true,
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "indexed": true,
@@ -279,9 +285,9 @@ module.exports = {
         "name": "calculateWinningResults",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -329,9 +335,9 @@ module.exports = {
         "name": "games",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -418,6 +424,11 @@ module.exports = {
           {
             "internalType": "uint256",
             "name": "_betAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_managementFee",
             "type": "uint256"
           }
         ],
@@ -695,9 +706,9 @@ module.exports = {
           },
           {
             "indexed": true,
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "indexed": true,
@@ -914,9 +925,9 @@ module.exports = {
         "name": "calculateWinningResults",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -988,9 +999,9 @@ module.exports = {
         "name": "games",
         "outputs": [
           {
-            "internalType": "bytes20",
+            "internalType": "bytes32",
             "name": "resultHash",
-            "type": "bytes20"
+            "type": "bytes32"
           },
           {
             "internalType": "uint256",
@@ -1109,6 +1120,11 @@ module.exports = {
           {
             "internalType": "uint256",
             "name": "_betAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_managementFee",
             "type": "uint256"
           }
         ],
